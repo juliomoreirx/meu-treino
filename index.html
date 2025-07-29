@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano de Treino - Julio Cesar</title>
+    
+    <!-- Tailwind CSS para estilização rápida e moderna -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts para uma tipografia limpa -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Estilo base usando a fonte Inter */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Remove as setas de incremento/decremento do input number */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        /* Estilo para a barra de rolagem */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #111827; } /* bg-gray-900 */
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex flex-col items-center min-h-screen p-4">
+
+    <div class="w-full max-w-3xl mx-auto">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-white">Meu Progresso</h1>
+            <p id="current-date" class="text-lg text-blue-400"></p>
+        </header>
+
+        <nav class="mb-8">
+            <ul id="tabs" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2">
+                <!-- As abas dos dias da semana serão geradas pelo JavaScript -->
+            </ul>
+        </nav>
+
+        <main id="workout-content">
+            <!-- Os cards de treino serão inseridos aqui pelo JavaScript -->
+        </main>
+        
+        <footer class="text-center mt-10 text-gray-500 text-sm">
+            <p>&copy; 2024 - Foco na progressão.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- ESTRUTURA DE DADOS DO TREINO ---
+            // A lógica agora separa a agenda da semana dos detalhes dos treinos.
+            const dataModel = {
+                // Agenda da semana
+                weekSchedule: [
+                    { dayIndex: 1, dayName: 'Seg', workoutId: 'dia1' },
+                    { dayIndex: 2, dayName: 'Ter', workoutId: 'dia2' },
+                    { dayIndex: 3, dayName: 'Qua', isRestDay: true },
+                    { dayIndex: 4, dayName: 'Qui', workoutId: 'dia3' },
+                    { dayIndex: 5, dayName: 'Sex', workoutId: 'dia4' },
+                    { dayIndex: 6, dayName: 'Sáb', isRestDay: true },
+                    { dayIndex: 0, dayName: 'Dom', isRestDay: true }
+                ],
+                // Detalhes de cada treino
+                workoutDetails: {
+                    'dia1': { 
+                        titulo: 'Superiores (Peito, Ombros e Tríceps)',
+                        exercicios: [
+                            { id: 'supino-maquina', nome: 'Supino Máquina (Peg. Pronada)', series: '4x 8-12', peso: 0 },
+                            { id: 'desenv-convergente', nome: 'Desenvolvimento Convergente Aberto', series: '3x 8-12', peso: 0 },
+                            { id: 'crucifixo-maquina', nome: 'Crucifixo Máquina (Peg. Neutra)', series: '3x 10-15', peso: 0 },
+                            { id: 'elevacao-lateral', nome: 'Elevação Lateral com Halteres', series: '4x 12-15', peso: 0 },
+                            { id: 'triceps-corda', nome: 'Tríceps Corda (Polia Alta)', series: '3x 10-15', peso: 0 },
+                            { id: 'triceps-frances', nome: 'Tríceps Francês (Corda ou Barra)', series: '3x 10-15', peso: 0 },
+                            { id: 'prancha-frontal', nome: 'Prancha Frontal', series: '3x Falha', peso: 0, isBodyweight: true },
+                        ]
+                    },
+                    'dia2': {
+                        titulo: 'Inferiores (Foco em Quadríceps)',
+                        exercicios: [
+                            { id: 'agachamento-hack', nome: 'Agachamento no Hack 45°', series: '4x 8-12', peso: 0 },
+                            { id: 'leg-press-45', nome: 'Leg Press 45°', series: '4x 10-15', peso: 0 },
+                            { id: 'cadeira-extensora', nome: 'Cadeira Extensora', series: '3x 12-15', peso: 0 },
+                            { id: 'cadeira-adutora', nome: 'Cadeira Adutora', series: '3x 12-15', peso: 0 },
+                            { id: 'panturrilha-pe', nome: 'Panturrilha na Máquina (em pé)', series: '4x 15-20', peso: 0 },
+                            { id: 'abdomen-maquina', nome: 'Abdômen na Máquina', series: '3x 12-15', peso: 0 },
+                        ]
+                    },
+                    'dia3': {
+                        titulo: 'Superiores (Costas, Bíceps e Ombro Posterior)',
+                        exercicios: [
+                            { id: 'puxada-aberta', nome: 'Puxada Aberta na Frente', series: '4x 8-12', peso: 0 },
+                            { id: 'remada-pronada', nome: 'Remada Máquina (Peg. Pronada)', series: '4x 8-12', peso: 0 },
+                            { id: 'remada-unilateral', nome: 'Remada Unilateral (Peg. Neutra)', series: '3x 10-12', peso: 0 },
+                            { id: 'crucifixo-inverso', nome: 'Crucifixo Invertido', series: '4x 12-15', peso: 0 },
+                            { id: 'rosca-direta', nome: 'Rosca Direta (Barra ou Polia)', series: '3x 10-12', peso: 0 },
+                            { id: 'rosca-alternada', nome: 'Rosca Alternada com Halteres', series: '3x 10-12', peso: 0 },
+                            { id: 'abdomen-remador', nome: 'Abdômen Remador', series: '3x Falha', peso: 0, isBodyweight: true },
+                        ]
+                    },
+                    'dia4': {
+                        titulo: 'Inferiores (Foco em Posterior e Glúteos)',
+                        exercicios: [
+                            { id: 'mesa-flexora', nome: 'Mesa Flexora', series: '4x 10-15', peso: 0 },
+                            { id: 'agachamento-smith', nome: 'Agachamento no Smith', series: '4x 8-12', peso: 0 },
+                            { id: 'elevacao-pelvica', nome: 'Elevação Pélvica (Hip Thrust)', series: '4x 10-15', peso: 0 },
+                            { id: 'cadeira-abdutora', nome: 'Cadeira Abdutora', series: '4x 15-20', peso: 0 },
+                            { id: 'leg-horizontal', nome: 'Leg Horizontal', series: '3x 10-15', peso: 0 },
+                            { id: 'panturrilha-sentado', nome: 'Panturrilha na Máquina (sentado)', series: '4x 15-20', peso: 0 },
+                            { id: 'abdomen-supra', nome: 'Abdômen Supra (chão)', series: '3x Falha', peso: 0, isBodyweight: true },
+                        ]
+                    }
+                }
+            };
+
+            const tabsContainer = document.getElementById('tabs');
+            const workoutContentContainer = document.getElementById('workout-content');
+            let savedData = JSON.parse(JSON.stringify(dataModel)); 
+
+            function loadData() {
+                const data = localStorage.getItem('workoutProgressJulioV3');
+                if (data) {
+                    savedData = JSON.parse(data);
+                }
+            }
+
+            function saveData() {
+                localStorage.setItem('workoutProgressJulioV3', JSON.stringify(savedData));
+            }
+
+            function render() {
+                const today = new Date();
+                const todayIndex = today.getDay(); 
+                
+                document.getElementById('current-date').textContent = today.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+
+                tabsContainer.innerHTML = '';
+                workoutContentContainer.innerHTML = '';
+                
+                const weekOrder = [1, 2, 3, 4, 5, 6, 0];
+                const orderedSchedule = weekOrder.map(dayIdx => savedData.weekSchedule.find(d => d.dayIndex === dayIdx));
+
+                let nextWorkoutDayIndex = -1;
+                for (let i = 1; i < 7; i++) {
+                    const checkIndex = (todayIndex + i) % 7;
+                    const dayInfo = savedData.weekSchedule.find(d => d.dayIndex === checkIndex);
+                    if (!dayInfo.isRestDay) {
+                        nextWorkoutDayIndex = checkIndex;
+                        break;
+                    }
+                }
+
+                orderedSchedule.forEach(day => {
+                    const isToday = day.dayIndex === todayIndex;
+                    const isNextWorkout = day.dayIndex === nextWorkoutDayIndex;
+                    
+                    let badge = '';
+                    if (isToday) {
+                        badge = `<span class="absolute -top-2 -right-2 text-xs bg-green-500 text-white font-bold px-2 py-0.5 rounded-full">Hoje</span>`;
+                    } else if (isNextWorkout) {
+                        badge = `<span class="absolute -top-2 -right-2 text-xs bg-yellow-500 text-white font-bold px-2 py-0.5 rounded-full">Próximo</span>`;
+                    } else if (day.isRestDay) {
+                        badge = `<span class="absolute -top-2 -right-2 text-xs bg-gray-600 text-white font-bold px-2 py-0.5 rounded-full">Descanso</span>`;
+                    }
+
+                    const tab = document.createElement('li');
+                    tab.className = 'relative';
+                    tab.innerHTML = `
+                        <button 
+                            data-day-index="${day.dayIndex}"
+                            class="tab-button w-full h-full px-3 py-3 text-sm font-bold rounded-lg transition-all duration-200 border-2 ${isToday ? 'bg-blue-600 border-blue-400 text-white' : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:border-gray-600'}">
+                            ${day.dayName}
+                        </button>
+                        ${badge}
+                    `;
+                    tabsContainer.appendChild(tab);
+
+                    const dayContainer = document.createElement('div');
+                    dayContainer.id = `day-${day.dayIndex}`;
+                    dayContainer.className = `space-y-4 ${!isToday ? 'hidden' : ''}`;
+
+                    if (day.isRestDay) {
+                        dayContainer.innerHTML = `
+                            <div class="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
+                                <h2 class="text-2xl font-bold text-white mb-2">Dia de Descanso</h2>
+                                <p class="text-gray-400">Aproveite para se recuperar. O descanso é fundamental para a hipertrofia!</p>
+                            </div>
+                        `;
+                    } else {
+                        const workout = savedData.workoutDetails[day.workoutId];
+                        
+                        // *** NOVO CÓDIGO AQUI ***
+                        // Adiciona o título do treino dentro do container do dia
+                        dayContainer.innerHTML += `
+                            <div class="pb-4 mb-4 border-b border-gray-700">
+                                <h2 class="text-2xl font-bold text-white">${workout.titulo}</h2>
+                            </div>
+                        `;
+                        // *** FIM DO NOVO CÓDIGO ***
+
+                        workout.exercicios.forEach(ex => {
+                            const pesoInputHTML = ex.isBodyweight ? `
+                                <div class="text-gray-400 text-sm">Exercício com peso corporal</div>
+                            ` : `
+                                <div class="flex items-center gap-2">
+                                    <label for="peso-${ex.id}" class="text-sm font-medium text-gray-400">Peso (kg):</label>
+                                    <div class="flex items-center gap-2 bg-gray-700 rounded-md">
+                                        <button data-action="decrement" data-target="peso-${ex.id}" class="px-3 py-1 text-lg font-bold text-white rounded-l-md hover:bg-gray-600 transition-colors">-</button>
+                                        <input type="number" step="0.5" id="peso-${ex.id}" value="${ex.peso}" class="w-20 text-center bg-transparent border-none text-white font-semibold focus:ring-0">
+                                        <button data-action="increment" data-target="peso-${ex.id}" class="px-3 py-1 text-lg font-bold text-white rounded-r-md hover:bg-gray-600 transition-colors">+</button>
+                                    </div>
+                                </div>
+                            `;
+
+                            dayContainer.innerHTML += `
+                                <div class="bg-gray-800 p-4 rounded-lg shadow-md">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h3 class="text-lg font-bold text-white">${ex.nome}</h3>
+                                            <p class="text-sm text-blue-400">${ex.series}</p>
+                                        </div>
+                                        <button data-action="save" data-workout-id="${day.workoutId}" data-ex-id="${ex.id}" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-blue-700 transition-colors">Salvar</button>
+                                    </div>
+                                    <div class="mt-4">${pesoInputHTML}</div>
+                                </div>
+                            `;
+                        });
+                    }
+                    workoutContentContainer.appendChild(dayContainer);
+                });
+
+                addEventListeners();
+            }
+            
+            function addEventListeners() {
+                document.querySelectorAll('.tab-button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const dayIndex = e.currentTarget.dataset.dayIndex;
+                        
+                        document.querySelectorAll('#workout-content > div').forEach(div => div.classList.add('hidden'));
+                        document.getElementById(`day-${dayIndex}`).classList.remove('hidden');
+
+                        document.querySelectorAll('.tab-button').forEach(btn => {
+                            if (btn.dataset.dayIndex != new Date().getDay()) {
+                                btn.classList.remove('bg-blue-600', 'border-blue-400', 'text-white');
+                                btn.classList.add('bg-gray-800', 'border-gray-700', 'text-gray-300');
+                            }
+                        });
+                        if (e.currentTarget.dataset.dayIndex != new Date().getDay()) {
+                           e.currentTarget.classList.add('bg-gray-700', 'border-gray-600');
+                           e.currentTarget.classList.remove('bg-gray-800', 'border-gray-700');
+                        }
+                    });
+                });
+
+                workoutContentContainer.addEventListener('click', (e) => {
+                    const action = e.target.dataset.action;
+                    if (!action) return;
+
+                    if (action === 'increment' || action === 'decrement') {
+                        const targetInput = document.getElementById(e.target.dataset.target);
+                        let currentValue = parseFloat(targetInput.value);
+                        const incrementValue = 1; 
+                        targetInput.value = action === 'increment' ? currentValue + incrementValue : Math.max(0, currentValue - incrementValue);
+                    }
+
+                    if (action === 'save') {
+                        const workoutId = e.target.dataset.workoutId;
+                        const exId = e.target.dataset.exId;
+                        const pesoInput = document.getElementById(`peso-${exId}`);
+                        
+                        const workout = savedData.workoutDetails[workoutId];
+                        const exercicio = workout.exercicios.find(ex => ex.id === exId);
+
+                        if (pesoInput) {
+                           exercicio.peso = parseFloat(pesoInput.value);
+                        }
+                        
+                        saveData();
+
+                        const originalText = e.target.textContent;
+                        e.target.textContent = 'Salvo!';
+                        e.target.classList.replace('bg-blue-600', 'bg-green-600');
+                        e.target.classList.remove('hover:bg-blue-700');
+                        setTimeout(() => {
+                            e.target.textContent = originalText;
+                            e.target.classList.replace('bg-green-600', 'bg-blue-600');
+                            e.target.classList.add('hover:bg-blue-700');
+                        }, 1500);
+                    }
+                });
+            }
+
+            // --- INICIALIZAÇÃO DA APLICAÇÃO ---
+            loadData();
+            render();
+        });
+    </script>
+
+</body>
+</html>
