@@ -14,302 +14,354 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* Estilo base usando a fonte Inter */
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        /* Remove as setas de incremento/decremento do input number */
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
-        /* Estilo para a barra de rolagem */
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #111827; } /* bg-gray-900 */
+        ::-webkit-scrollbar-track { background: #111827; }
         ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.7); }
+        .hidden { display: none; }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 flex flex-col items-center min-h-screen p-4">
 
-    <div class="w-full max-w-3xl mx-auto">
-        
+    <!-- Tela de Autenticação -->
+    <div id="auth-overlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gray-900">
+        <h1 class="text-3xl font-bold text-white mb-4">Bem-vindo ao seu App de Treino</h1>
+        <p class="text-gray-400 mb-8">Faça login para sincronizar seu progresso na nuvem.</p>
+        <button id="login-btn" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+            Entrar (Login Anônimo)
+        </button>
+    </div>
+
+    <!-- Indicador de Carregamento -->
+    <div id="loading-indicator" class="fixed inset-0 z-40 flex items-center justify-center bg-gray-900 hidden">
+        <p class="text-xl text-white">Carregando dados...</p>
+    </div>
+
+    <!-- Conteúdo Principal do App (inicialmente oculto) -->
+    <div id="app-container" class="w-full max-w-3xl mx-auto hidden">
         <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-white">Meu Progresso</h1>
-            <p id="current-date" class="text-lg text-blue-400"></p>
+            <div class="flex justify-between items-center">
+                <div class="text-left">
+                    <p class="text-xs text-gray-500">Logado como:</p>
+                    <p id="user-id-display" class="text-xs text-gray-400 truncate"></p>
+                </div>
+                <h1 class="text-4xl font-bold text-white">Meu Progresso</h1>
+                <button id="logout-btn" class="bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-semibold hover:bg-red-700">Sair</button>
+            </div>
+            <p id="current-date" class="text-lg text-blue-400 mt-4"></p>
         </header>
 
         <nav class="mb-8">
-            <ul id="tabs" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2">
-                <!-- As abas dos dias da semana serão geradas pelo JavaScript -->
-            </ul>
+            <ul id="tabs" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2"></ul>
         </nav>
 
-        <main id="workout-content">
-            <!-- Os cards de treino serão inseridos aqui pelo JavaScript -->
-        </main>
+        <main id="workout-content"></main>
         
         <footer class="text-center mt-10 text-gray-500 text-sm">
-            <p>&copy; 2024 - Foco na progressão.</p>
+            <p>&copy; 2024 - Sincronizado com Firebase.</p>
         </footer>
-
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- ESTRUTURA DE DADOS DO TREINO ---
-            // A lógica agora separa a agenda da semana dos detalhes dos treinos.
-            const dataModel = {
-                // Agenda da semana
-                weekSchedule: [
-                    { dayIndex: 1, dayName: 'Seg', workoutId: 'dia1' },
-                    { dayIndex: 2, dayName: 'Ter', workoutId: 'dia2' },
-                    { dayIndex: 3, dayName: 'Qua', isRestDay: true },
-                    { dayIndex: 4, dayName: 'Qui', workoutId: 'dia3' },
-                    { dayIndex: 5, dayName: 'Sex', workoutId: 'dia4' },
-                    { dayIndex: 6, dayName: 'Sáb', isRestDay: true },
-                    { dayIndex: 0, dayName: 'Dom', isRestDay: true }
-                ],
-                // Detalhes de cada treino
-                workoutDetails: {
-                    'dia1': { 
-                        titulo: 'Superiores (Peito, Ombros e Tríceps)',
-                        exercicios: [
-                            { id: 'supino-maquina', nome: 'Supino Máquina (Peg. Pronada)', series: '4x 8-12', peso: 0 },
-                            { id: 'desenv-convergente', nome: 'Desenvolvimento Convergente Aberto', series: '3x 8-12', peso: 0 },
-                            { id: 'crucifixo-maquina', nome: 'Crucifixo Máquina (Peg. Neutra)', series: '3x 10-15', peso: 0 },
-                            { id: 'elevacao-lateral', nome: 'Elevação Lateral com Halteres', series: '4x 12-15', peso: 0 },
-                            { id: 'triceps-corda', nome: 'Tríceps Corda (Polia Alta)', series: '3x 10-15', peso: 0 },
-                            { id: 'triceps-frances', nome: 'Tríceps Francês (Corda ou Barra)', series: '3x 10-15', peso: 0 },
-                            { id: 'prancha-frontal', nome: 'Prancha Frontal', series: '3x Falha', peso: 0, isBodyweight: true },
-                        ]
-                    },
-                    'dia2': {
-                        titulo: 'Inferiores (Foco em Quadríceps)',
-                        exercicios: [
-                            { id: 'agachamento-hack', nome: 'Agachamento no Hack 45°', series: '4x 8-12', peso: 0 },
-                            { id: 'leg-press-45', nome: 'Leg Press 45°', series: '4x 10-15', peso: 0 },
-                            { id: 'cadeira-extensora', nome: 'Cadeira Extensora', series: '3x 12-15', peso: 0 },
-                            { id: 'cadeira-adutora', nome: 'Cadeira Adutora', series: '3x 12-15', peso: 0 },
-                            { id: 'panturrilha-pe', nome: 'Panturrilha na Máquina (em pé)', series: '4x 15-20', peso: 0 },
-                            { id: 'abdomen-maquina', nome: 'Abdômen na Máquina', series: '3x 12-15', peso: 0 },
-                        ]
-                    },
-                    'dia3': {
-                        titulo: 'Superiores (Costas, Bíceps e Ombro Posterior)',
-                        exercicios: [
-                            { id: 'puxada-aberta', nome: 'Puxada Aberta na Frente', series: '4x 8-12', peso: 0 },
-                            { id: 'remada-pronada', nome: 'Remada Máquina (Peg. Pronada)', series: '4x 8-12', peso: 0 },
-                            { id: 'remada-unilateral', nome: 'Remada Unilateral (Peg. Neutra)', series: '3x 10-12', peso: 0 },
-                            { id: 'crucifixo-inverso', nome: 'Crucifixo Invertido', series: '4x 12-15', peso: 0 },
-                            { id: 'rosca-direta', nome: 'Rosca Direta (Barra ou Polia)', series: '3x 10-12', peso: 0 },
-                            { id: 'rosca-alternada', nome: 'Rosca Alternada com Halteres', series: '3x 10-12', peso: 0 },
-                            { id: 'abdomen-remador', nome: 'Abdômen Remador', series: '3x Falha', peso: 0, isBodyweight: true },
-                        ]
-                    },
-                    'dia4': {
-                        titulo: 'Inferiores (Foco em Posterior e Glúteos)',
-                        exercicios: [
-                            { id: 'mesa-flexora', nome: 'Mesa Flexora', series: '4x 10-15', peso: 0 },
-                            { id: 'agachamento-smith', nome: 'Agachamento no Smith', series: '4x 8-12', peso: 0 },
-                            { id: 'elevacao-pelvica', nome: 'Elevação Pélvica (Hip Thrust)', series: '4x 10-15', peso: 0 },
-                            { id: 'cadeira-abdutora', nome: 'Cadeira Abdutora', series: '4x 15-20', peso: 0 },
-                            { id: 'leg-horizontal', nome: 'Leg Horizontal', series: '3x 10-15', peso: 0 },
-                            { id: 'panturrilha-sentado', nome: 'Panturrilha na Máquina (sentado)', series: '4x 15-20', peso: 0 },
-                            { id: 'abdomen-supra', nome: 'Abdômen Supra (chão)', series: '3x Falha', peso: 0, isBodyweight: true },
-                        ]
-                    }
-                }
-            };
+    <!-- Modal de Histórico -->
+    <div id="history-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay hidden">
+        <div class="bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
+            <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+                <h3 id="history-modal-title" class="text-xl font-bold text-white">Histórico</h3>
+                <button id="close-modal-btn" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <div id="history-modal-body" class="p-6 max-h-80 overflow-y-auto"></div>
+        </div>
+    </div>
 
-            const tabsContainer = document.getElementById('tabs');
-            const workoutContentContainer = document.getElementById('workout-content');
-            let savedData = JSON.parse(JSON.stringify(dataModel)); 
+    <!-- Scripts do Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-            function loadData() {
-                const data = localStorage.getItem('workoutProgressJulioV3');
-                if (data) {
-                    savedData = JSON.parse(data);
+        const firebaseConfig = {
+            apiKey: "AIzaSyA94aGrUqLbbRsqJinIf_A18I7o6L7XewM",
+            authDomain: "meu-app-treino-ebcfa.firebaseapp.com",
+            projectId: "meu-app-treino-ebcfa",
+            storageBucket: "meu-app-treino-ebcfa.appspot.com",
+            messagingSenderId: "530118244798",
+            appId: "1:530118244798:web:8c3c1fb40f1673eb9921ef"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const appContainer = document.getElementById('app-container');
+        const authOverlay = document.getElementById('auth-overlay');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userIdDisplay = document.getElementById('user-id-display');
+        
+        let currentUserId = null;
+        let unsubscribeFromFirestore = null;
+        let savedData = null;
+
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                currentUserId = user.uid;
+                authOverlay.classList.add('hidden');
+                loadingIndicator.classList.remove('hidden');
+                userIdDisplay.textContent = `ID: ${currentUserId.substring(0, 10)}...`;
+                setupRealtimeListener(currentUserId);
+            } else {
+                currentUserId = null;
+                appContainer.classList.add('hidden');
+                authOverlay.classList.remove('hidden');
+                loadingIndicator.classList.add('hidden');
+                if (unsubscribeFromFirestore) {
+                    unsubscribeFromFirestore();
                 }
             }
+        });
 
-            function saveData() {
-                localStorage.setItem('workoutProgressJulioV3', JSON.stringify(savedData));
-            }
+        loginBtn.addEventListener('click', () => {
+            signInAnonymously(auth).catch(error => {
+                console.error("Erro no login anônimo:", error);
+                alert("Não foi possível fazer o login. Verifique sua conexão ou as configurações do Firebase.");
+            });
+        });
 
-            function render() {
-                const today = new Date();
-                const todayIndex = today.getDay(); 
-                
-                document.getElementById('current-date').textContent = today.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth);
+        });
 
-                tabsContainer.innerHTML = '';
-                workoutContentContainer.innerHTML = '';
-                
-                const weekOrder = [1, 2, 3, 4, 5, 6, 0];
-                const orderedSchedule = weekOrder.map(dayIdx => savedData.weekSchedule.find(d => d.dayIndex === dayIdx));
-
-                let nextWorkoutDayIndex = -1;
-                for (let i = 1; i < 7; i++) {
-                    const checkIndex = (todayIndex + i) % 7;
-                    const dayInfo = savedData.weekSchedule.find(d => d.dayIndex === checkIndex);
-                    if (!dayInfo.isRestDay) {
-                        nextWorkoutDayIndex = checkIndex;
-                        break;
-                    }
-                }
-
-                orderedSchedule.forEach(day => {
-                    const isToday = day.dayIndex === todayIndex;
-                    const isNextWorkout = day.dayIndex === nextWorkoutDayIndex;
+        function setupRealtimeListener(userId) {
+            const userDocRef = doc(db, "users", userId);
+            unsubscribeFromFirestore = onSnapshot(userDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    loadingIndicator.classList.add('hidden');
+                    appContainer.classList.remove('hidden');
+                    savedData = docSnap.data();
                     
-                    let badge = '';
-                    if (isToday) {
-                        badge = `<span class="absolute -top-2 -right-2 text-xs bg-green-500 text-white font-bold px-2 py-0.5 rounded-full">Hoje</span>`;
-                    } else if (isNextWorkout) {
-                        badge = `<span class="absolute -top-2 -right-2 text-xs bg-yellow-500 text-white font-bold px-2 py-0.5 rounded-full">Próximo</span>`;
-                    } else if (day.isRestDay) {
-                        badge = `<span class="absolute -top-2 -right-2 text-xs bg-gray-600 text-white font-bold px-2 py-0.5 rounded-full">Descanso</span>`;
-                    }
-
-                    const tab = document.createElement('li');
-                    tab.className = 'relative';
-                    tab.innerHTML = `
-                        <button 
-                            data-day-index="${day.dayIndex}"
-                            class="tab-button w-full h-full px-3 py-3 text-sm font-bold rounded-lg transition-all duration-200 border-2 ${isToday ? 'bg-blue-600 border-blue-400 text-white' : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:border-gray-600'}">
-                            ${day.dayName}
-                        </button>
-                        ${badge}
-                    `;
-                    tabsContainer.appendChild(tab);
-
-                    const dayContainer = document.createElement('div');
-                    dayContainer.id = `day-${day.dayIndex}`;
-                    dayContainer.className = `space-y-4 ${!isToday ? 'hidden' : ''}`;
-
-                    if (day.isRestDay) {
-                        dayContainer.innerHTML = `
-                            <div class="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
-                                <h2 class="text-2xl font-bold text-white mb-2">Dia de Descanso</h2>
-                                <p class="text-gray-400">Aproveite para se recuperar. O descanso é fundamental para a hipertrofia!</p>
-                            </div>
-                        `;
-                    } else {
-                        const workout = savedData.workoutDetails[day.workoutId];
-                        
-                        // *** NOVO CÓDIGO AQUI ***
-                        // Adiciona o título do treino dentro do container do dia
-                        dayContainer.innerHTML += `
-                            <div class="pb-4 mb-4 border-b border-gray-700">
-                                <h2 class="text-2xl font-bold text-white">${workout.titulo}</h2>
-                            </div>
-                        `;
-                        // *** FIM DO NOVO CÓDIGO ***
-
-                        workout.exercicios.forEach(ex => {
-                            const pesoInputHTML = ex.isBodyweight ? `
-                                <div class="text-gray-400 text-sm">Exercício com peso corporal</div>
-                            ` : `
-                                <div class="flex items-center gap-2">
-                                    <label for="peso-${ex.id}" class="text-sm font-medium text-gray-400">Peso (kg):</label>
-                                    <div class="flex items-center gap-2 bg-gray-700 rounded-md">
-                                        <button data-action="decrement" data-target="peso-${ex.id}" class="px-3 py-1 text-lg font-bold text-white rounded-l-md hover:bg-gray-600 transition-colors">-</button>
-                                        <input type="number" step="0.5" id="peso-${ex.id}" value="${ex.peso}" class="w-20 text-center bg-transparent border-none text-white font-semibold focus:ring-0">
-                                        <button data-action="increment" data-target="peso-${ex.id}" class="px-3 py-1 text-lg font-bold text-white rounded-r-md hover:bg-gray-600 transition-colors">+</button>
-                                    </div>
-                                </div>
-                            `;
-
-                            dayContainer.innerHTML += `
-                                <div class="bg-gray-800 p-4 rounded-lg shadow-md">
-                                    <div class="flex justify-between items-start">
-                                        <div>
-                                            <h3 class="text-lg font-bold text-white">${ex.nome}</h3>
-                                            <p class="text-sm text-blue-400">${ex.series}</p>
-                                        </div>
-                                        <button data-action="save" data-workout-id="${day.workoutId}" data-ex-id="${ex.id}" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-blue-700 transition-colors">Salvar</button>
-                                    </div>
-                                    <div class="mt-4">${pesoInputHTML}</div>
-                                </div>
-                            `;
-                        });
-                    }
-                    workoutContentContainer.appendChild(dayContainer);
-                });
-
-                addEventListeners();
-            }
-            
-            function addEventListeners() {
-                document.querySelectorAll('.tab-button').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const dayIndex = e.currentTarget.dataset.dayIndex;
-                        
-                        document.querySelectorAll('#workout-content > div').forEach(div => div.classList.add('hidden'));
-                        document.getElementById(`day-${dayIndex}`).classList.remove('hidden');
-
-                        document.querySelectorAll('.tab-button').forEach(btn => {
-                            if (btn.dataset.dayIndex != new Date().getDay()) {
-                                btn.classList.remove('bg-blue-600', 'border-blue-400', 'text-white');
-                                btn.classList.add('bg-gray-800', 'border-gray-700', 'text-gray-300');
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    if (savedData.lastVisit !== todayStr) {
+                        Object.values(savedData.workoutDetails).forEach(workout => {
+                            if(workout.exercicios) {
+                                workout.exercicios.forEach(ex => { ex.isDone = false; });
                             }
                         });
-                        if (e.currentTarget.dataset.dayIndex != new Date().getDay()) {
-                           e.currentTarget.classList.add('bg-gray-700', 'border-gray-600');
-                           e.currentTarget.classList.remove('bg-gray-800', 'border-gray-700');
-                        }
-                    });
-                });
-
-                workoutContentContainer.addEventListener('click', (e) => {
-                    const action = e.target.dataset.action;
-                    if (!action) return;
-
-                    if (action === 'increment' || action === 'decrement') {
-                        const targetInput = document.getElementById(e.target.dataset.target);
-                        let currentValue = parseFloat(targetInput.value);
-                        const incrementValue = 1; 
-                        targetInput.value = action === 'increment' ? currentValue + incrementValue : Math.max(0, currentValue - incrementValue);
+                        savedData.lastVisit = todayStr;
+                        saveData(); 
+                    } else {
+                        render();
                     }
+                } else {
+                    console.log("Novo usuário detectado. Criando documento inicial...");
+                    const initialData = createInitialDataModel();
+                    setDoc(userDocRef, initialData);
+                }
+            }, (error) => {
+                console.error("Erro ao ouvir o Firestore:", error);
+                alert("Não foi possível carregar os dados. Verifique as regras de segurança do Firestore.");
+            });
+        }
+        
+        async function saveData() {
+            if (!currentUserId || !savedData) return;
+            const userDocRef = doc(db, "users", currentUserId);
+            try {
+                await setDoc(userDocRef, savedData, { merge: true });
+            } catch (error) {
+                console.error("Erro ao salvar dados no Firestore: ", error);
+            }
+        }
+        
+        const tabsContainer = document.getElementById('tabs');
+        const workoutContentContainer = document.getElementById('workout-content');
+        const historyModal = document.getElementById('history-modal');
+        const historyModalTitle = document.getElementById('history-modal-title');
+        const historyModalBody = document.getElementById('history-modal-body');
+        const closeModalBtn = document.getElementById('close-modal-btn');
 
-                    if (action === 'save') {
-                        const workoutId = e.target.dataset.workoutId;
-                        const exId = e.target.dataset.exId;
-                        const pesoInput = document.getElementById(`peso-${exId}`);
-                        
-                        const workout = savedData.workoutDetails[workoutId];
-                        const exercicio = workout.exercicios.find(ex => ex.id === exId);
+        function render() {
+            if (!savedData || !savedData.weekSchedule) return; // Guard clause
+            const today = new Date();
+            const todayIndex = today.getDay();
+            document.getElementById('current-date').textContent = today.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+            tabsContainer.innerHTML = '';
+            workoutContentContainer.innerHTML = '';
+            const weekOrder = [1, 2, 3, 4, 5, 6, 0];
+            
+            // *** CORREÇÃO APLICADA AQUI ***
+            // Itera sobre 'weekOrder' para garantir a ordem correta e evitar o erro.
+            const orderedSchedule = weekOrder.map(dayIdx => savedData.weekSchedule.find(d => d.dayIndex === dayIdx));
 
-                        if (pesoInput) {
-                           exercicio.peso = parseFloat(pesoInput.value);
-                        }
-                        
-                        saveData();
-
-                        const originalText = e.target.textContent;
-                        e.target.textContent = 'Salvo!';
-                        e.target.classList.replace('bg-blue-600', 'bg-green-600');
-                        e.target.classList.remove('hover:bg-blue-700');
-                        setTimeout(() => {
-                            e.target.textContent = originalText;
-                            e.target.classList.replace('bg-green-600', 'bg-blue-600');
-                            e.target.classList.add('hover:bg-blue-700');
-                        }, 1500);
-                    }
-                });
+            let nextWorkoutDayIndex = -1;
+            for (let i = 1; i < 7; i++) {
+                const checkIndex = (todayIndex + i) % 7;
+                const dayInfo = savedData.weekSchedule.find(d => d.dayIndex === checkIndex);
+                if (dayInfo && !dayInfo.isRestDay) {
+                    nextWorkoutDayIndex = checkIndex;
+                    break;
+                }
             }
 
-            // --- INICIALIZAÇÃO DA APLICAÇÃO ---
-            loadData();
-            render();
-        });
-    </script>
+            orderedSchedule.forEach(day => {
+                if (!day) return; // Pula se um dia não for encontrado (segurança extra)
 
+                const isToday = day.dayIndex === todayIndex;
+                const isNextWorkout = day.dayIndex === nextWorkoutDayIndex;
+
+                let badge = '';
+                if (isToday) {
+                    badge = `<span class="absolute -top-2 -right-2 text-xs bg-green-500 text-white font-bold px-2 py-0.5 rounded-full">Hoje</span>`;
+                } else if (isNextWorkout) {
+                    badge = `<span class="absolute -top-2 -right-2 text-xs bg-yellow-500 text-white font-bold px-2 py-0.5 rounded-full">Próximo</span>`;
+                } else if (day.isRestDay) {
+                    badge = `<span class="absolute -top-2 -right-2 text-xs bg-gray-600 text-white font-bold px-2 py-0.5 rounded-full">Descanso</span>`;
+                }
+
+                const tab = document.createElement('li');
+                tab.className = 'relative';
+                tab.innerHTML = `<button data-day-index="${day.dayIndex}" class="tab-button w-full h-full px-3 py-3 text-sm font-bold rounded-lg transition-all duration-200 border-2 ${isToday ? 'bg-blue-600 border-blue-400 text-white' : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:border-gray-600'}">${day.dayName}</button>${badge}`;
+                tabsContainer.appendChild(tab);
+
+                const dayContainer = document.createElement('div');
+                dayContainer.id = `day-${day.dayIndex}`;
+                dayContainer.className = `space-y-4 ${!isToday ? 'hidden' : ''}`;
+
+                if (day.isRestDay) {
+                    dayContainer.innerHTML = `<div class="bg-gray-800 p-8 rounded-lg shadow-lg text-center"><h2 class="text-2xl font-bold text-white mb-2">Dia de Descanso</h2></div>`;
+                } else {
+                    const workout = savedData.workoutDetails[day.workoutId];
+                    dayContainer.innerHTML = `<div class="pb-4 mb-4 border-b border-gray-700"><h2 class="text-2xl font-bold text-white">${workout.titulo}</h2></div>`;
+                    
+                    workout.exercicios.forEach(ex => {
+                        const doneClass = ex.isDone ? 'opacity-50 border-green-500' : 'border-transparent';
+                        const latestWeight = ex.historico && ex.historico.length > 0 ? ex.historico[ex.historico.length - 1].peso : 0;
+
+                        const pesoInputHTML = ex.isBodyweight ? `<div class="text-gray-400 text-sm">Peso corporal</div>` : `
+                            <div class="flex items-center gap-2">
+                                <label for="peso-${ex.id}" class="text-sm font-medium text-gray-400">Peso (kg):</label>
+                                <div class="flex items-center gap-2 bg-gray-700 rounded-md">
+                                    <button data-action="decrement" data-target="peso-${ex.id}" class="px-3 py-1 text-lg font-bold text-white rounded-l-md hover:bg-gray-600">-</button>
+                                    <input type="number" step="0.5" id="peso-${ex.id}" value="${latestWeight}" class="w-20 text-center bg-transparent border-none text-white font-semibold focus:ring-0">
+                                    <button data-action="increment" data-target="peso-${ex.id}" class="px-3 py-1 text-lg font-bold text-white rounded-r-md hover:bg-gray-600">+</button>
+                                </div>
+                            </div>`;
+
+                        const exerciseCard = document.createElement('div');
+                        exerciseCard.id = `card-${ex.id}`;
+                        exerciseCard.className = `bg-gray-800 p-4 rounded-lg shadow-md border-2 transition-all duration-300 ${doneClass}`;
+                        exerciseCard.innerHTML = `
+                            <div class="flex justify-between items-start gap-4">
+                                <div>
+                                    <h3 class="text-lg font-bold text-white">${ex.nome}</h3>
+                                    <p class="text-sm text-blue-400">${ex.series}</p>
+                                </div>
+                                <div class="flex flex-col sm:flex-row gap-2 items-end">
+                                    <button data-action="history" data-workout-id="${day.workoutId}" data-ex-id="${ex.id}" class="bg-gray-600 text-white px-3 py-2 rounded-md text-sm font-semibold hover:bg-gray-500 w-full sm:w-auto">Histórico</button>
+                                    <button data-action="save" data-workout-id="${day.workoutId}" data-ex-id="${ex.id}" class="bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-semibold hover:bg-blue-700 w-full sm:w-auto">Salvar</button>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-between items-center">
+                                ${pesoInputHTML}
+                                <button data-action="toggleDone" data-workout-id="${day.workoutId}" data-ex-id="${ex.id}" class="${ex.isDone ? 'bg-gray-600' : 'bg-green-600'} text-white px-3 py-2 rounded-md text-sm font-semibold transition-colors">${ex.isDone ? 'Desfazer' : 'Feito'}</button>
+                            </div>
+                        `;
+                        dayContainer.appendChild(exerciseCard);
+                    });
+                }
+                workoutContentContainer.appendChild(dayContainer);
+            });
+            addEventListeners();
+        }
+
+        function addEventListeners() {
+            const newWorkoutContentContainer = workoutContentContainer.cloneNode(true);
+            workoutContentContainer.parentNode.replaceChild(newWorkoutContentContainer, workoutContentContainer);
+            
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const dayIndex = e.currentTarget.dataset.dayIndex;
+                    document.querySelectorAll('#app-container #workout-content > div').forEach(div => div.classList.add('hidden'));
+                    document.getElementById(`day-${dayIndex}`).classList.remove('hidden');
+                });
+            });
+
+            newWorkoutContentContainer.addEventListener('click', (e) => {
+                const button = e.target.closest('button');
+                if (!button) return;
+                const action = button.dataset.action;
+                if (!action) return;
+
+                const workoutId = button.dataset.workoutId;
+                const exId = button.dataset.exId;
+                const workout = savedData.workoutDetails[workoutId];
+                const exercicio = workout?.exercicios.find(ex => ex.id === exId);
+
+                switch (action) {
+                    case 'toggleDone':
+                        exercicio.isDone = !exercicio.isDone;
+                        saveData();
+                        break;
+                    case 'save':
+                        const pesoInput = document.getElementById(`peso-${exId}`);
+                        if (!pesoInput) return;
+                        const newPeso = parseFloat(pesoInput.value);
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        if (!exercicio.historico) { exercicio.historico = []; }
+                        const todayEntryIndex = exercicio.historico.findIndex(entry => entry.data === todayStr);
+                        if (todayEntryIndex > -1) {
+                            exercicio.historico[todayEntryIndex].peso = newPeso;
+                        } else {
+                            exercicio.historico.push({ data: todayStr, peso: newPeso });
+                        }
+                        saveData();
+                        break;
+                    case 'history':
+                        historyModalTitle.textContent = `Histórico de: ${exercicio.nome}`;
+                        historyModalBody.innerHTML = '';
+                        if (!exercicio.historico || exercicio.historico.length === 0) {
+                            historyModalBody.innerHTML = `<p class="text-gray-400">Nenhum registro.</p>`;
+                        } else {
+                            const list = document.createElement('ul');
+                            list.className = 'space-y-2';
+                            [...exercicio.historico].reverse().forEach(entry => {
+                                const date = new Date(entry.data);
+                                const formattedDate = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
+                                list.innerHTML += `<li class="flex justify-between items-center bg-gray-700 p-2 rounded-md"><span>${formattedDate}</span><span class="font-bold">${entry.peso} kg</span></li>`;
+                            });
+                            historyModalBody.appendChild(list);
+                        }
+                        historyModal.classList.remove('hidden');
+                        break;
+                    case 'increment':
+                    case 'decrement':
+                         const targetInput = document.getElementById(e.target.dataset.target);
+                         let currentValue = parseFloat(targetInput.value);
+                         const incrementValue = 1; 
+                         targetInput.value = action === 'increment' ? currentValue + incrementValue : Math.max(0, currentValue - incrementValue);
+                         break;
+                }
+            });
+
+            closeModalBtn.addEventListener('click', () => historyModal.classList.add('hidden'));
+            historyModal.addEventListener('click', (e) => {
+                if (e.target === historyModal) {
+                    historyModal.classList.add('hidden');
+                }
+            });
+        }
+        
+        function createInitialDataModel() {
+            return JSON.parse(JSON.stringify({
+                lastVisit: new Date().toISOString().split('T')[0],
+                weekSchedule: [ { dayIndex: 1, dayName: 'Seg', workoutId: 'dia1' }, { dayIndex: 2, dayName: 'Ter', workoutId: 'dia2' }, { dayIndex: 3, dayName: 'Qua', isRestDay: true }, { dayIndex: 4, dayName: 'Qui', workoutId: 'dia3' }, { dayIndex: 5, dayName: 'Sex', workoutId: 'dia4' }, { dayIndex: 6, dayName: 'Sáb', isRestDay: true }, { dayIndex: 0, dayName: 'Dom', isRestDay: true } ],
+                workoutDetails: { 'dia1': { titulo: 'Superiores (Peito, Ombros e Tríceps)', exercicios: [ { id: 'supino-maquina', nome: 'Supino Máquina (Peg. Pronada)', series: '4x 8-12', historico: [], isDone: false }, { id: 'desenv-convergente', nome: 'Desenvolvimento Convergente Aberto', series: '3x 8-12', historico: [], isDone: false }, { id: 'crucifixo-maquina', nome: 'Crucifixo Máquina (Peg. Neutra)', series: '3x 10-15', historico: [], isDone: false }, { id: 'elevacao-lateral', nome: 'Elevação Lateral com Halteres', series: '4x 12-15', historico: [], isDone: false }, { id: 'triceps-corda', nome: 'Tríceps Corda (Polia Alta)', series: '3x 10-15', historico: [], isDone: false }, { id: 'triceps-frances', nome: 'Tríceps Francês (Corda ou Barra)', series: '3x 10-15', historico: [], isDone: false }, { id: 'prancha-frontal', nome: 'Prancha Frontal', series: '3x Falha', historico: [], isBodyweight: true, isDone: false } ] }, 'dia2': { titulo: 'Inferiores (Foco em Quadríceps)', exercicios: [ { id: 'agachamento-hack', nome: 'Agachamento no Hack 45°', series: '4x 8-12', historico: [], isDone: false }, { id: 'leg-press-45', nome: 'Leg Press 45°', series: '4x 10-15', historico: [], isDone: false }, { id: 'cadeira-extensora', nome: 'Cadeira Extensora', series: '3x 12-15', historico: [], isDone: false }, { id: 'cadeira-adutora', nome: 'Cadeira Adutora', series: '3x 12-15', historico: [], isDone: false }, { id: 'panturrilha-pe', nome: 'Panturrilha na Máquina (em pé)', series: '4x 15-20', historico: [], isDone: false }, { id: 'abdomen-maquina', nome: 'Abdômen na Máquina', series: '3x 12-15', historico: [], isDone: false } ] }, 'dia3': { titulo: 'Superiores (Costas, Bíceps e Ombro Posterior)', exercicios: [ { id: 'puxada-aberta', nome: 'Puxada Aberta na Frente', series: '4x 8-12', historico: [], isDone: false }, { id: 'remada-pronada', nome: 'Remada Máquina (Peg. Pronada)', series: '4x 8-12', historico: [], isDone: false }, { id: 'remada-unilateral', nome: 'Remada Unilateral (Peg. Neutra)', series: '3x 10-12', historico: [], isDone: false }, { id: 'crucifixo-inverso', nome: 'Crucifixo Invertido', series: '4x 12-15', historico: [], isDone: false }, { id: 'rosca-direta', nome: 'Rosca Direta (Barra ou Polia)', series: '3x 10-12', historico: [], isDone: false }, { id: 'rosca-alternada', nome: 'Rosca Alternada com Halteres', series: '3x 10-12', historico: [], isDone: false }, { id: 'abdomen-remador', nome: 'Abdômen Remador', series: '3x Falha', historico: [], isBodyweight: true, isDone: false } ] }, 'dia4': { titulo: 'Inferiores (Foco em Posterior e Glúteos)', exercicios: [ { id: 'mesa-flexora', nome: 'Mesa Flexora', series: '4x 10-15', historico: [], isDone: false }, { id: 'agachamento-smith', nome: 'Agachamento no Smith', series: '4x 8-12', historico: [], isDone: false }, { id: 'elevacao-pelvica', nome: 'Elevação Pélvica (Hip Thrust)', series: '4x 10-15', historico: [], isDone: false }, { id: 'cadeira-abdutora', nome: 'Cadeira Abdutora', series: '4x 15-20', historico: [], isDone: false }, { id: 'leg-horizontal', nome: 'Leg Horizontal', series: '3x 10-15', historico: [], isDone: false }, { id: 'panturrilha-sentado', nome: 'Panturrilha na Máquina (sentado)', series: '4x 15-20', historico: [], isDone: false }, { id: 'abdomen-supra', nome: 'Abdômen Supra (chão)', series: '3x Falha', historico: [], isBodyweight: true, isDone: false } ] } }
+            }));
+        }
+
+    </script>
 </body>
 </html>
