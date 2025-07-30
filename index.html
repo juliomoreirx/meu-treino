@@ -25,13 +25,94 @@
 
     <!-- Tela de Autenticação -->
     <div id="auth-overlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gray-900 p-4">
-        <div class="w-full max-w-sm text-center">
-            <h1 class="text-3xl font-bold text-white mb-4">Bem-vindo ao App de Treino</h1>
-            <p class="text-gray-400 mb-8">Entre com sua conta Google para sincronizar seu progresso.</p>
-            <button type="button" id="google-login-btn" class="w-full flex items-center justify-center gap-3 bg-white text-gray-800 py-3 px-4 rounded-lg font-semibold hover:bg-gray-200 transition-colors shadow-lg">
-                <svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#4285F4" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#34A853" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C42.612,36.845,44,30.861,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FBBC05" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#EA4335" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="none" d="M0,0h48v48H0z"></path></svg>
-                Entrar com Google
-            </button>
+        <div class="w-full max-w-sm">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-white mb-2">Bem-vindo ao App de Treino</h1>
+                <p class="text-gray-400">Entre na sua conta ou crie uma nova.</p>
+            </div>
+
+            <!-- Abas de Login/Cadastro -->
+            <div class="flex mb-6 bg-gray-800 rounded-lg p-1">
+                <button id="login-tab" class="flex-1 py-2 px-4 text-sm font-semibold rounded-md bg-blue-600 text-white transition-colors">
+                    Entrar
+                </button>
+                <button id="register-tab" class="flex-1 py-2 px-4 text-sm font-semibold rounded-md text-gray-400 hover:text-white transition-colors">
+                    Cadastrar
+                </button>
+            </div>
+
+            <!-- Formulário de Login -->
+            <div id="login-form" class="space-y-4">
+                <form id="email-login-form" class="space-y-4">
+                    <div>
+                        <input type="email" id="login-email" placeholder="Seu e-mail" required
+                               class="w-full bg-gray-800 text-white p-3 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <input type="password" id="login-password" placeholder="Sua senha" required
+                               class="w-full bg-gray-800 text-white p-3 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                        Entrar com E-mail
+                    </button>
+                </form>
+                
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-700"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-gray-900 text-gray-400">ou</span>
+                    </div>
+                </div>
+                
+                <button type="button" id="google-login-btn" class="w-full flex items-center justify-center gap-3 bg-white text-gray-800 py-3 px-4 rounded-lg font-semibold hover:bg-gray-200 transition-colors shadow-lg">
+                    <svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#4285F4" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#34A853" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C42.612,36.845,44,30.861,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FBBC05" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#EA4335" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="none" d="M0,0h48v48H0z"></path></svg>
+                    Entrar com Google
+                </button>
+            </div>
+
+            <!-- Formulário de Cadastro -->
+            <div id="register-form" class="space-y-4 hidden">
+                <form id="email-register-form" class="space-y-4">
+                    <div>
+                        <input type="text" id="register-name" placeholder="Seu nome completo" required
+                               class="w-full bg-gray-800 text-white p-3 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <input type="email" id="register-email" placeholder="Seu e-mail" required
+                               class="w-full bg-gray-800 text-white p-3 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <input type="password" id="register-password" placeholder="Sua senha (mínimo 6 caracteres)" required minlength="6"
+                               class="w-full bg-gray-800 text-white p-3 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <input type="password" id="register-confirm-password" placeholder="Confirme sua senha" required minlength="6"
+                               class="w-full bg-gray-800 text-white p-3 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                        Criar Conta
+                    </button>
+                </form>
+                
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-700"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-gray-900 text-gray-400">ou</span>
+                    </div>
+                </div>
+                
+                <button type="button" id="google-register-btn" class="w-full flex items-center justify-center gap-3 bg-white text-gray-800 py-3 px-4 rounded-lg font-semibold hover:bg-gray-200 transition-colors shadow-lg">
+                    <svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#4285F4" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#34A853" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C42.612,36.845,44,30.861,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FBBC05" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#EA4335" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="none" d="M0,0h48v48H0z"></path></svg>
+                    Cadastrar com Google
+                </button>
+            </div>
+
+            <!-- Mensagem de erro -->
+            <div id="auth-error" class="mt-4 p-3 bg-red-900 border border-red-700 rounded-lg text-red-200 text-sm hidden"></div>
         </div>
     </div>
 
@@ -46,9 +127,10 @@
             <div class="flex justify-between items-center">
                 <div class="text-left flex-1 truncate">
                     <p class="text-xs text-gray-500">Logado como:</p>
+                    <p id="user-name-display" class="text-sm font-semibold text-gray-200 truncate"></p>
                     <p id="user-email-display" class="text-xs text-gray-400 truncate"></p>
                 </div>
-                <h1 class="text-4xl font-bold text-white mx-4">Meu Progresso</h1>
+                <h1 class="text-4xl font-bold text-white mx-4">Meu Treino!</h1>
                 <div class="flex-1 text-right space-x-2">
                     <button id="admin-panel-btn" class="bg-yellow-500 text-black px-3 py-1 rounded-lg text-xs font-semibold hover:bg-yellow-600 hidden">Admin</button>
                     <button id="logout-btn" class="bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-semibold hover:bg-red-700">Sair</button>
@@ -102,7 +184,7 @@
     <!-- Scripts do Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot, getDoc, collection, getDocs, updateDoc, arrayUnion, arrayRemove, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -136,7 +218,16 @@
             loadingIndicator: document.getElementById('loading-indicator'),
             logoutBtn: document.getElementById('logout-btn'),
             userEmailDisplay: document.getElementById('user-email-display'),
+            userNameDisplay: document.getElementById('user-name-display'),
             googleLoginBtn: document.getElementById('google-login-btn'),
+            googleRegisterBtn: document.getElementById('google-register-btn'),
+            emailLoginForm: document.getElementById('email-login-form'),
+            emailRegisterForm: document.getElementById('email-register-form'),
+            loginTab: document.getElementById('login-tab'),
+            registerTab: document.getElementById('register-tab'),
+            loginForm: document.getElementById('login-form'),
+            registerForm: document.getElementById('register-form'),
+            authError: document.getElementById('auth-error'),
             adminPanelBtn: document.getElementById('admin-panel-btn'),
             userWorkoutView: document.getElementById('user-workout-view'),
             adminView: document.getElementById('admin-view'),
@@ -164,6 +255,7 @@
                     appState.currentUser = user;
                     ui.authOverlay.classList.add('hidden');
                     ui.loadingIndicator.classList.remove('hidden');
+                    ui.userNameDisplay.textContent = user.displayName || 'Usuário';
                     ui.userEmailDisplay.textContent = user.email;
                     initializeUserSession(user.uid);
                 } else {
@@ -175,6 +267,11 @@
         function setupEventListeners() {
             // Botões principais
             ui.googleLoginBtn.addEventListener('click', handleGoogleLogin);
+            ui.googleRegisterBtn.addEventListener('click', handleGoogleLogin);
+            ui.emailLoginForm.addEventListener('submit', handleEmailLogin);
+            ui.emailRegisterForm.addEventListener('submit', handleEmailRegister);
+            ui.loginTab.addEventListener('click', () => switchAuthTab('login'));
+            ui.registerTab.addEventListener('click', () => switchAuthTab('register'));
             ui.logoutBtn.addEventListener('click', handleLogout);
             ui.adminPanelBtn.addEventListener('click', () => switchToView('admin'));
             ui.backToWorkoutBtn.addEventListener('click', () => switchToView('workout'));
@@ -214,11 +311,41 @@
         async function initializeUserSession(userId) {
             try {
                 await checkIfAdmin(userId);
+                await saveUserProfile(userId); // Salvar perfil do usuário
                 setupRealtimeListener(userId);
             } catch (error) {
                 console.error('Erro ao inicializar sessão:', error);
                 ui.loadingIndicator.classList.add('hidden');
                 ui.appContainer.classList.remove('hidden');
+            }
+        }
+
+        async function saveUserProfile(userId) {
+            if (!appState.currentUser) return;
+            
+            try {
+                const userDocRef = doc(db, "users", userId);
+                const userDoc = await getDoc(userDocRef);
+                
+                // Informações do perfil do Google
+                const profileData = {
+                    email: appState.currentUser.email || '',
+                    displayName: appState.currentUser.displayName || '',
+                    photoURL: appState.currentUser.photoURL || '',
+                    lastLogin: new Date().toISOString()
+                };
+                
+                // Se o documento não existe, vamos criá-lo com o perfil
+                // Se existe, apenas atualizar as informações do perfil
+                if (userDoc.exists()) {
+                    await updateUserData(userId, profileData);
+                } else {
+                    // Criar documento inicial com perfil
+                    const initialData = createInitialDataModel();
+                    await setDoc(userDocRef, { ...initialData, ...profileData });
+                }
+            } catch (error) {
+                console.error('Erro ao salvar perfil:', error);
             }
         }
 
@@ -305,13 +432,134 @@
         }
 
         // === AUTENTICAÇÃO ===
+        function switchAuthTab(tab) {
+            if (tab === 'login') {
+                ui.loginTab.classList.add('bg-blue-600', 'text-white');
+                ui.loginTab.classList.remove('text-gray-400');
+                ui.registerTab.classList.remove('bg-blue-600', 'text-white');
+                ui.registerTab.classList.add('text-gray-400');
+                ui.loginForm.classList.remove('hidden');
+                ui.registerForm.classList.add('hidden');
+            } else {
+                ui.registerTab.classList.add('bg-blue-600', 'text-white');
+                ui.registerTab.classList.remove('text-gray-400');
+                ui.loginTab.classList.remove('bg-blue-600', 'text-white');
+                ui.loginTab.classList.add('text-gray-400');
+                ui.registerForm.classList.remove('hidden');
+                ui.loginForm.classList.add('hidden');
+            }
+            hideAuthError();
+        }
+
+        function showAuthError(message) {
+            ui.authError.textContent = message;
+            ui.authError.classList.remove('hidden');
+        }
+
+        function hideAuthError() {
+            ui.authError.classList.add('hidden');
+        }
+
         async function handleGoogleLogin() {
             try {
+                hideAuthError();
                 const provider = new GoogleAuthProvider();
                 await signInWithPopup(auth, provider);
             } catch (error) {
                 console.error("Erro no login com Google:", error);
-                alert('Erro ao fazer login. Tente novamente.');
+                showAuthError('Erro ao fazer login com Google. Tente novamente.');
+            }
+        }
+
+        async function handleEmailLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            
+            if (!email || !password) {
+                showAuthError('Preencha todos os campos.');
+                return;
+            }
+
+            try {
+                hideAuthError();
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                console.error("Erro no login:", error);
+                let errorMessage = 'Erro ao fazer login. Tente novamente.';
+                
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                        errorMessage = 'Usuário não encontrado. Verifique o e-mail ou crie uma conta.';
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage = 'Senha incorreta. Tente novamente.';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'E-mail inválido.';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = 'Muitas tentativas. Tente novamente mais tarde.';
+                        break;
+                }
+                
+                showAuthError(errorMessage);
+            }
+        }
+
+        async function handleEmailRegister(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('register-name').value.trim();
+            const email = document.getElementById('register-email').value.trim();
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
+            
+            if (!name || !email || !password || !confirmPassword) {
+                showAuthError('Preencha todos os campos.');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showAuthError('As senhas não coincidem.');
+                return;
+            }
+
+            if (password.length < 6) {
+                showAuthError('A senha deve ter pelo menos 6 caracteres.');
+                return;
+            }
+
+            try {
+                hideAuthError();
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                
+                // Atualizar perfil com o nome
+                await updateProfile(userCredential.user, {
+                    displayName: name
+                });
+                
+                // Recarregar o usuário para obter as informações atualizadas
+                await userCredential.user.reload();
+                
+            } catch (error) {
+                console.error("Erro no cadastro:", error);
+                let errorMessage = 'Erro ao criar conta. Tente novamente.';
+                
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMessage = 'Este e-mail já está em uso. Tente fazer login.';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'E-mail inválido.';
+                        break;
+                    case 'auth/weak-password':
+                        errorMessage = 'Senha muito fraca. Use pelo menos 6 caracteres.';
+                        break;
+                }
+                
+                showAuthError(errorMessage);
             }
         }
 
@@ -459,21 +707,53 @@
                     return;
                 }
                 
+                // Ordenar usuários por nome
+                const users = [];
                 querySnapshot.forEach((doc) => {
-                    const user = doc.data();
-                    const userEmail = user.email || `Usuário ${doc.id.substring(0, 6)}`;
+                    users.push({ id: doc.id, data: doc.data() });
+                });
+                
+                users.sort((a, b) => {
+                    const nameA = a.data.displayName || a.data.email || 'Usuário sem nome';
+                    const nameB = b.data.displayName || b.data.email || 'Usuário sem nome';
+                    return nameA.localeCompare(nameB);
+                });
+                
+                users.forEach(({ id, data: user }) => {
+                    const displayName = user.displayName || 'Usuário sem nome';
+                    const email = user.email || `Usuário ${id.substring(0, 6)}`;
+                    const photoURL = user.photoURL;
+                    const lastLogin = user.lastLogin ? 
+                        new Date(user.lastLogin).toLocaleDateString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) : 'Nunca';
                     
                     const userDiv = document.createElement('div');
-                    userDiv.className = 'bg-gray-800 p-4 rounded-lg flex justify-between items-center';
+                    userDiv.className = 'bg-gray-800 p-4 rounded-lg flex items-center justify-between gap-4';
                     userDiv.innerHTML = `
-                        <div>
-                            <p class="font-bold">${userEmail}</p>
-                            <p class="text-xs text-gray-400">${doc.id}</p>
+                        <div class="flex items-center gap-3 flex-1">
+                            ${photoURL ? 
+                                `<img src="${photoURL}" alt="Foto do usuário" class="w-12 h-12 rounded-full border-2 border-gray-600">` :
+                                `<div class="w-12 h-12 rounded-full bg-gray-600 flex items-center justify-center border-2 border-gray-500">
+                                    <span class="text-lg font-bold text-gray-300">${displayName.charAt(0).toUpperCase()}</span>
+                                </div>`
+                            }
+                            <div class="flex-1 min-w-0">
+                                <p class="font-bold text-lg text-white truncate">${displayName}</p>
+                                <p class="text-sm text-gray-400 truncate">${email}</p>
+                                <p class="text-xs text-gray-500">Último acesso: ${lastLogin}</p>
+                            </div>
                         </div>
-                        <button data-action="admin-edit" data-user-id="${doc.id}" data-user-email="${userEmail}" 
-                                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                            Editar Treino
-                        </button>
+                        <div class="flex flex-col gap-2">
+                            <button data-action="admin-edit" data-user-id="${id}" data-user-email="${email}" data-user-display-name="${displayName}"
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-semibold whitespace-nowrap">
+                                Editar Treino
+                            </button>
+                        </div>
                     `;
                     ui.userList.appendChild(userDiv);
                 });
@@ -534,6 +814,11 @@
                     <!-- Treinos Existentes -->
                     <div class="space-y-4 mb-6">
                         <h3 class="text-xl font-bold">Treinos Existentes</h3>
+                        <div class="bg-blue-900 border border-blue-700 p-3 rounded-lg">
+                            <p class="text-sm text-blue-200">
+                                <strong>💡 Dica:</strong> Clique nos campos para editar diretamente. As alterações são salvas automaticamente.
+                            </p>
+                        </div>
                         ${Object.keys(userData.workoutDetails || {}).map(workoutId => {
                             const workout = userData.workoutDetails[workoutId];
                             return `
@@ -653,6 +938,15 @@
             switch (action) {
                 case 'update-schedule':
                     handleUpdateSchedule(element);
+                    break;
+                case 'edit-workout-title':
+                    handleEditWorkoutTitle(element);
+                    break;
+                case 'edit-exercise-name':
+                    handleEditExerciseName(element);
+                    break;
+                case 'edit-exercise-series':
+                    handleEditExerciseSeries(element);
                     break;
             }
         }
@@ -792,16 +1086,16 @@
             
             const currentValue = parseFloat(targetInput.value) || 0;
             const newValue = action === 'increment' 
-                ? currentValue + 1 
-                : Math.max(0, currentValue - 1);
+                ? currentValue + 2.5 
+                : Math.max(0, currentValue - 2.5);
             
             targetInput.value = newValue;
         }
 
         function handleAdminEdit(button) {
-            const { userId, userEmail } = button.dataset;
+            const { userId, userEmail, userDisplayName } = button.dataset;
             appState.editingUserId = userId;
-            appState.editingUserEmail = userEmail;
+            appState.editingUserEmail = userDisplayName || userEmail;
             switchToView('editor');
         }
 
@@ -946,6 +1240,104 @@
             }
         }
 
+        async function handleEditWorkoutTitle(input) {
+            const workoutId = input.dataset.workoutId;
+            const userId = appState.editingUserId;
+            const newTitle = input.value.trim();
+            
+            if (!newTitle) {
+                alert('O título do treino não pode estar vazio.');
+                // Restaurar valor anterior
+                const userDoc = await getDoc(doc(db, "users", userId));
+                const userData = userDoc.data();
+                input.value = userData.workoutDetails[workoutId].titulo;
+                return;
+            }
+
+            try {
+                await updateUserData(userId, {
+                    [`workoutDetails.${workoutId}.titulo`]: newTitle
+                });
+                
+                // Feedback visual
+                input.classList.add('ring-2', 'ring-green-500');
+                setTimeout(() => {
+                    input.classList.remove('ring-2', 'ring-green-500');
+                }, 1000);
+            } catch (error) {
+                console.error('Erro ao atualizar título:', error);
+                alert('Erro ao salvar título. Tente novamente.');
+            }
+        }
+
+        async function handleEditExerciseName(input) {
+            const { workoutId, exId } = input.dataset;
+            const userId = appState.editingUserId;
+            const newName = input.value.trim();
+            
+            if (!newName) {
+                alert('O nome do exercício não pode estar vazio.');
+                return;
+            }
+
+            try {
+                const userDoc = await getDoc(doc(db, "users", userId));
+                const userData = userDoc.data();
+                const exercicios = userData.workoutDetails[workoutId].exercicios;
+                
+                const updatedExercicios = exercicios.map(ex => 
+                    ex.id === exId ? { ...ex, nome: newName } : ex
+                );
+                
+                await updateUserData(userId, {
+                    [`workoutDetails.${workoutId}.exercicios`]: updatedExercicios
+                });
+                
+                // Feedback visual
+                input.classList.add('ring-2', 'ring-green-500');
+                setTimeout(() => {
+                    input.classList.remove('ring-2', 'ring-green-500');
+                }, 1000);
+            } catch (error) {
+                console.error('Erro ao atualizar nome do exercício:', error);
+                alert('Erro ao salvar nome do exercício. Tente novamente.');
+            }
+        }
+
+        async function handleEditExerciseSeries(input) {
+            const { workoutId, exId } = input.dataset;
+            const userId = appState.editingUserId;
+            const newSeries = input.value.trim();
+            
+            if (!newSeries) {
+                alert('As séries do exercício não podem estar vazias.');
+                return;
+            }
+
+            try {
+                const userDoc = await getDoc(doc(db, "users", userId));
+                const userData = userDoc.data();
+                const exercicios = userData.workoutDetails[workoutId].exercicios;
+                
+                const updatedExercicios = exercicios.map(ex => 
+                    ex.id === exId ? { ...ex, series: newSeries } : ex
+                );
+                
+                await updateUserData(userId, {
+                    [`workoutDetails.${workoutId}.exercicios`]: updatedExercicios
+                });
+                
+                // Feedback visual
+                input.classList.add('ring-2', 'ring-green-500');
+                setTimeout(() => {
+                    input.classList.remove('ring-2', 'ring-green-500');
+                }, 1000);
+            } catch (error) {
+                console.error('Erro ao atualizar séries do exercício:', error);
+                alert('Erro ao salvar séries do exercício. Tente novamente.');
+            }
+        }
+
         // === UTILITÁRIOS ===
         function createExerciseCardHTML(day, ex) {
             const doneClass = ex.isDone ? 'opacity-50 border-green-500' : 'border-transparent';
@@ -975,7 +1367,7 @@
                             <div class="flex items-center gap-2 bg-gray-700 rounded-md">
                                 <button data-action="decrement" data-target="peso-${ex.id}" 
                                         class="px-3 py-1 text-lg font-bold hover:bg-gray-600 rounded-l-md">-</button>
-                                <input type="number" step="0.5" id="peso-${ex.id}" value="${latestWeight}" 
+                                <input type="number" step="2.5" id="peso-${ex.id}" value="${latestWeight}" 
                                        class="w-20 text-center bg-transparent border-none focus:ring-0 focus:outline-none">
                                 <button data-action="increment" data-target="peso-${ex.id}" 
                                         class="px-3 py-1 text-lg font-bold hover:bg-gray-600 rounded-r-md">+</button>
@@ -993,7 +1385,10 @@
         function createInitialDataModel() {
             return {
                 lastVisit: new Date().toISOString().split('T')[0],
-                email: appState.currentUser.email,
+                email: appState.currentUser.email || '',
+                displayName: appState.currentUser.displayName || '',
+                photoURL: appState.currentUser.photoURL || '',
+                lastLogin: new Date().toISOString(),
                 weekSchedule: [
                     { dayIndex: 1, dayName: 'Seg', workoutId: 'dia1', isRestDay: false },
                     { dayIndex: 2, dayName: 'Ter', workoutId: 'dia2', isRestDay: false },
