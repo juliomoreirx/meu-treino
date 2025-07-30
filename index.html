@@ -97,7 +97,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, getDoc, collection, getDocs, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, getDoc, collection, getDocs, updateDoc, arrayUnion, arrayRemove, deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA94aGrUqLbbRsqJinIf_A18I7o6L7XewM",
@@ -163,6 +163,8 @@
             const adminDoc = await getDoc(adminDocRef);
             if (adminDoc.exists()) {
                 ui.adminPanelBtn.classList.remove('hidden');
+            } else {
+                ui.adminPanelBtn.classList.add('hidden');
             }
         }
 
@@ -233,20 +235,38 @@
             const weekOrder = [1, 2, 3, 4, 5, 6, 0];
             const orderedSchedule = weekOrder.map(dayIdx => savedData.weekSchedule.find(d => d.dayIndex === dayIdx));
 
+            let nextWorkoutDayIndex = -1;
+            for (let i = 1; i < 7; i++) {
+                const checkIndex = (todayIndex + i) % 7;
+                const dayInfo = savedData.weekSchedule.find(d => d.dayIndex === checkIndex);
+                if (dayInfo && !dayInfo.isRestDay) {
+                    nextWorkoutDayIndex = checkIndex;
+                    break;
+                }
+            }
+
             orderedSchedule.forEach(day => {
                 if (!day) return;
                 const isToday = day.dayIndex === todayIndex;
+                const isNextWorkout = day.dayIndex === nextWorkoutDayIndex;
+
                 let badge = '';
-                if (isToday) badge = `<span class="absolute -top-2 -right-2 text-xs bg-green-500 text-white font-bold px-2 py-0.5 rounded-full">Hoje</span>`;
-                
+                if (isToday) {
+                    badge = `<span class="absolute -top-2 -right-2 text-xs bg-green-500 text-white font-bold px-2 py-0.5 rounded-full">Hoje</span>`;
+                } else if (isNextWorkout) {
+                    badge = `<span class="absolute -top-2 -right-2 text-xs bg-yellow-500 text-white font-bold px-2 py-0.5 rounded-full">Próximo</span>`;
+                } else if (day.isRestDay) {
+                    badge = `<span class="absolute -top-2 -right-2 text-xs bg-gray-600 text-white font-bold px-2 py-0.5 rounded-full">Descanso</span>`;
+                }
+
                 const tab = document.createElement('li');
                 tab.className = 'relative';
-                tab.innerHTML = `<button data-day-index="${day.dayIndex}" class="tab-button w-full h-full px-3 py-3 text-sm font-bold rounded-lg transition-all duration-200 border-2 ${isToday ? 'bg-blue-600 border-blue-400 text-white' : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'}">${day.dayName}</button>${badge}`;
+                tab.innerHTML = `<button data-day-index="${day.dayIndex}" class="tab-button w-full h-full px-3 py-3 text-sm font-bold rounded-lg transition-all duration-200 border-2 ${isToday ? 'border-blue-400' : 'border-gray-700'} bg-gray-800 text-gray-300 hover:bg-gray-700">${day.dayName}</button>${badge}`;
                 ui.tabs.appendChild(tab);
 
                 const dayContainer = document.createElement('div');
                 dayContainer.id = `day-${day.dayIndex}`;
-                dayContainer.className = `space-y-4 ${!isToday ? 'hidden' : ''}`;
+                dayContainer.className = `space-y-4 hidden`;
                 
                 if (day.isRestDay) {
                     dayContainer.innerHTML = `<div class="bg-gray-800 p-8 rounded-lg text-center"><h2 class="text-2xl font-bold">Dia de Descanso</h2></div>`;
@@ -261,6 +281,18 @@
                 }
                 ui.workoutContent.appendChild(dayContainer);
             });
+            
+            // Ativa a aba do dia atual
+            const activeTab = document.querySelector(`.tab-button[data-day-index="${todayIndex}"]`);
+            if (activeTab) {
+                activeTab.classList.remove('bg-gray-800');
+                activeTab.classList.add('bg-blue-600');
+            }
+            const activeContent = document.getElementById(`day-${todayIndex}`);
+            if (activeContent) {
+                activeContent.classList.remove('hidden');
+            }
+
             addEventListeners();
         }
 
@@ -301,7 +333,7 @@
             let editorHTML = `
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-3xl font-bold truncate">Editando: ${userEmail}</h2>
-                    <button id="back-to-admin-panel-btn" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex-shrink-0">Voltar</button>
+                    <button data-action="back-to-admin" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex-shrink-0">Voltar</button>
                 </div>
             `;
 
@@ -311,13 +343,13 @@
                     <div class="bg-gray-800 p-4 rounded-lg mb-4">
                         <div class="flex justify-between items-center mb-3">
                             <h3 class="text-xl font-bold">${workout.titulo}</h3>
-                            <button data-action="delete-workout" data-workout-id="${workoutId}" data-user-id="${userId}" class="text-red-500 hover:text-red-400 text-xs">Excluir Dia</button>
+                            <button data-action="delete-workout" data-workout-id="${workoutId}" data-user-id="${userId}" class="text-red-500 hover:text-red-400 text-xs font-semibold">Excluir Dia</button>
                         </div>
                         <div class="space-y-2">
                         ${workout.exercicios.map(ex => `
-                            <div class="flex justify-between items-center text-sm text-gray-300">
+                            <div class="flex justify-between items-center text-sm text-gray-300 border-b border-gray-700 py-1">
                                 <span>${ex.nome} (${ex.series})</span>
-                                <button data-action="delete-exercise" data-workout-id="${workoutId}" data-ex-id="${ex.id}" data-user-id="${userId}" class="text-red-500 hover:text-red-400 text-xs">Excluir</button>
+                                <button data-action="delete-exercise" data-workout-id="${workoutId}" data-ex-id="${ex.id}" data-user-id="${userId}" class="text-red-500 hover:text-red-400 text-xs font-semibold">Excluir</button>
                             </div>
                         `).join('')}
                         </div>
@@ -326,8 +358,8 @@
             });
             
             editorHTML += `
-                <form id="add-exercise-form" class="bg-gray-800 p-6 rounded-lg space-y-4 mt-6">
-                    <h3 class="text-xl font-bold">Adicionar Novo Exercício</h3>
+                <form id="add-exercise-form" data-user-id="${userId}" data-user-email="${userEmail}" class="bg-gray-800 p-6 rounded-lg space-y-4 mt-6">
+                    <h3 class="text-xl font-bold">Adicionar Exercício</h3>
                     <select id="new-ex-workout-id" class="w-full bg-gray-700 p-2 rounded">
                         <option value="">Selecione o Dia de Treino</option>
                         ${Object.keys(userData.workoutDetails).map(id => `<option value="${id}">${userData.workoutDetails[id].titulo}</option>`).join('')}
@@ -343,7 +375,6 @@
         
         // --- FUNÇÕES DE EVENTOS E HELPERS ---
         function addEventListeners() {
-            // Limpa listeners antigos para evitar duplicação
             const newWorkoutContent = ui.workoutContent.cloneNode(true);
             ui.workoutContent.parentNode.replaceChild(newWorkoutContent, ui.workoutContent);
             const newUserList = ui.userList.cloneNode(true);
@@ -352,8 +383,16 @@
             ui.adminUserEditorView.parentNode.replaceChild(newAdminEditor, ui.adminUserEditorView);
             
             document.querySelectorAll('.tab-button').forEach(b => b.addEventListener('click', e => {
+                const target = e.currentTarget;
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('bg-blue-600');
+                    btn.classList.add('bg-gray-800');
+                });
+                target.classList.add('bg-blue-600');
+                target.classList.remove('bg-gray-800');
+                
                 document.querySelectorAll('#app-container #workout-content > div').forEach(d => d.classList.add('hidden'));
-                document.getElementById(`day-${e.currentTarget.dataset.dayIndex}`).classList.remove('hidden');
+                document.getElementById(`day-${target.dataset.dayIndex}`).classList.remove('hidden');
             }));
 
             newWorkoutContent.addEventListener('click', handleWorkoutEvent);
@@ -428,22 +467,23 @@
             const action = element.dataset.action || (e.type === 'submit' ? 'add-exercise' : null);
             if (!action) return;
 
+            const form = document.getElementById('add-exercise-form');
+            const userId = form.dataset.userId;
+            const userEmail = form.dataset.userEmail;
+
             if (action === 'add-exercise') {
-                const form = document.getElementById('add-exercise-form');
-                const userId = document.querySelector('#admin-user-editor-view .flex-shrink-0').id.replace('back-to-admin-panel-btn-',''); // A bit hacky way to get userId
                 const workoutId = form.querySelector('#new-ex-workout-id').value;
                 const name = form.querySelector('#new-ex-name').value;
                 const series = form.querySelector('#new-ex-series').value;
 
                 if (!workoutId || !name || !series) { alert('Preencha todos os campos.'); return; }
 
-                const newExercise = { id: name.toLowerCase().replace(/\s/g, '-'), nome: name, series: series, historico: [], isDone: false };
+                const newExercise = { id: name.toLowerCase().replace(/\s/g, '-').replace(/[^\w-]/g, ''), nome: name, series: series, historico: [], isDone: false };
                 
-                const userDocRef = doc(db, "users", userId);
-                await updateDoc(userDocRef, {
+                await updateUserData(userId, {
                     [`workoutDetails.${workoutId}.exercicios`]: arrayUnion(newExercise)
                 });
-                renderAdminUserEditor(userId, (await getDoc(userDocRef)).data().email);
+                renderAdminUserEditor(userId, userEmail);
             }
             
             if (action === 'delete-exercise') {
@@ -455,13 +495,23 @@
                 const userData = userDoc.data();
                 const exerciseToDelete = userData.workoutDetails[workoutId].exercicios.find(ex => ex.id === exId);
                 
-                await updateDoc(userDocRef, {
+                await updateUserData(userId, {
                     [`workoutDetails.${workoutId}.exercicios`]: arrayRemove(exerciseToDelete)
                 });
                 renderAdminUserEditor(userId, userData.email);
             }
             
-            if (element.id === 'back-to-admin-panel-btn') {
+            if (action === 'delete-workout') {
+                const { userId, workoutId } = element.dataset;
+                if (!confirm(`Tem certeza que deseja excluir todo este dia de treino?`)) return;
+                await updateUserData(userId, {
+                    [`workoutDetails.${workoutId}`]: deleteField()
+                });
+                const userDoc = await getDoc(doc(db, "users", userId));
+                renderAdminUserEditor(userId, userDoc.data().email);
+            }
+
+            if (action === 'back-to-admin') {
                  ui.adminUserEditorView.classList.add('hidden');
                  ui.adminView.classList.remove('hidden');
                  renderAdminPanel();
