@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plano de Treino - Julio Cesar</title>
+    <title>Plano de Treino</title>
     
-    <!-- Tailwind CSS para estilização rápida e moderna -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts para uma tipografia limpa -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -26,13 +23,11 @@
 </head>
 <body class="bg-gray-900 text-gray-200 flex flex-col items-center min-h-screen p-4">
 
-    <!-- Tela de Autenticação Simplificada -->
+    <!-- Tela de Autenticação -->
     <div id="auth-overlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gray-900 p-4">
         <div class="w-full max-w-sm text-center">
-            <h1 class="text-3xl font-bold text-white mb-4">Bem-vindo ao seu App de Treino</h1>
+            <h1 class="text-3xl font-bold text-white mb-4">Bem-vindo ao App de Treino</h1>
             <p class="text-gray-400 mb-8">Entre com sua conta Google para sincronizar seu progresso.</p>
-            
-            <!-- Botão de Login com Google -->
             <button type="button" id="google-login-btn" class="w-full flex items-center justify-center gap-3 bg-white text-gray-800 py-3 px-4 rounded-lg font-semibold hover:bg-gray-200 transition-colors shadow-lg">
                 <svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#4285F4" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#34A853" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C42.612,36.845,44,30.861,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FBBC05" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#EA4335" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="none" d="M0,0h48v48H0z"></path></svg>
                 Entrar com Google
@@ -41,11 +36,11 @@
     </div>
 
     <!-- Indicador de Carregamento -->
-    <div id="loading-indicator" class="fixed inset-0 z-40 flex items-center justify-center bg-gray-900 hidden">
-        <p class="text-xl text-white">Carregando dados...</p>
+    <div id="loading-indicator" class="fixed inset-0 z-40 flex items-center justify-center bg-gray-900">
+        <p class="text-xl text-white">Carregando...</p>
     </div>
 
-    <!-- Conteúdo Principal do App (inicialmente oculto) -->
+    <!-- Conteúdo Principal do App -->
     <div id="app-container" class="w-full max-w-3xl mx-auto hidden">
         <header class="text-center mb-8">
             <div class="flex justify-between items-center">
@@ -54,18 +49,33 @@
                     <p id="user-email-display" class="text-xs text-gray-400 truncate"></p>
                 </div>
                 <h1 class="text-4xl font-bold text-white mx-4">Meu Progresso</h1>
-                <div class="flex-1 text-right">
+                <div class="flex-1 text-right space-x-2">
+                    <button id="admin-panel-btn" class="bg-yellow-500 text-black px-3 py-1 rounded-lg text-xs font-semibold hover:bg-yellow-600 hidden">Admin</button>
                     <button id="logout-btn" class="bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-semibold hover:bg-red-700">Sair</button>
                 </div>
             </div>
             <p id="current-date" class="text-lg text-blue-400 mt-4"></p>
         </header>
 
-        <nav class="mb-8">
-            <ul id="tabs" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2"></ul>
-        </nav>
+        <!-- Visão do Treino do Usuário -->
+        <div id="user-workout-view">
+            <nav class="mb-8">
+                <ul id="tabs" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2"></ul>
+            </nav>
+            <main id="workout-content"></main>
+        </div>
 
-        <main id="workout-content"></main>
+        <!-- Visão do Painel de Admin -->
+        <div id="admin-view" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold">Painel de Administração</h2>
+                <button id="back-to-workout-btn" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">Voltar ao meu treino</button>
+            </div>
+            <div id="user-list" class="space-y-3"></div>
+        </div>
+
+        <!-- Visão do Editor de Treino do Admin -->
+        <div id="admin-user-editor-view" class="hidden"></div>
         
         <footer class="text-center mt-10 text-gray-500 text-sm">
             <p>&copy; 2024 - Sincronizado com Firebase.</p>
@@ -87,7 +97,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, getDoc, collection, getDocs, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA94aGrUqLbbRsqJinIf_A18I7o6L7XewM",
@@ -102,291 +112,395 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const appContainer = document.getElementById('app-container');
-        const authOverlay = document.getElementById('auth-overlay');
-        const loadingIndicator = document.getElementById('loading-indicator');
-        const logoutBtn = document.getElementById('logout-btn');
-        const userEmailDisplay = document.getElementById('user-email-display');
-        const googleLoginBtn = document.getElementById('google-login-btn');
+        // Elementos da UI
+        const ui = {
+            appContainer: document.getElementById('app-container'),
+            authOverlay: document.getElementById('auth-overlay'),
+            loadingIndicator: document.getElementById('loading-indicator'),
+            logoutBtn: document.getElementById('logout-btn'),
+            userEmailDisplay: document.getElementById('user-email-display'),
+            googleLoginBtn: document.getElementById('google-login-btn'),
+            adminPanelBtn: document.getElementById('admin-panel-btn'),
+            userWorkoutView: document.getElementById('user-workout-view'),
+            adminView: document.getElementById('admin-view'),
+            adminUserEditorView: document.getElementById('admin-user-editor-view'),
+            backToWorkoutBtn: document.getElementById('back-to-workout-btn'),
+            userList: document.getElementById('user-list'),
+            tabs: document.getElementById('tabs'),
+            workoutContent: document.getElementById('workout-content'),
+            historyModal: document.getElementById('history-modal'),
+            historyModalTitle: document.getElementById('history-modal-title'),
+            historyModalBody: document.getElementById('history-modal-body'),
+            closeModalBtn: document.getElementById('close-modal-btn'),
+            currentDate: document.getElementById('current-date'),
+        };
 
-        let currentUserId = null;
+        let currentUser = null;
         let unsubscribeFromFirestore = null;
         let savedData = null;
 
+        // --- LÓGICA DE AUTENTICAÇÃO E ADMIN ---
         onAuthStateChanged(auth, user => {
             if (user) {
-                currentUserId = user.uid;
-                authOverlay.classList.add('hidden');
-                loadingIndicator.classList.remove('hidden');
-                userEmailDisplay.textContent = user.email;
-                setupRealtimeListener(currentUserId);
+                currentUser = user;
+                ui.authOverlay.classList.add('hidden');
+                ui.loadingIndicator.classList.remove('hidden');
+                ui.userEmailDisplay.textContent = user.email;
+                checkIfAdmin(user.uid);
+                setupRealtimeListener(user.uid);
             } else {
-                currentUserId = null;
-                appContainer.classList.add('hidden');
-                authOverlay.classList.remove('hidden');
-                loadingIndicator.classList.add('hidden');
-                if (unsubscribeFromFirestore) {
-                    unsubscribeFromFirestore();
-                }
+                currentUser = null;
+                ui.appContainer.classList.add('hidden');
+                ui.authOverlay.classList.remove('hidden');
+                ui.loadingIndicator.classList.add('hidden');
+                ui.adminPanelBtn.classList.add('hidden');
+                if (unsubscribeFromFirestore) unsubscribeFromFirestore();
             }
         });
-        
-        googleLoginBtn.addEventListener('click', () => {
+
+        async function checkIfAdmin(uid) {
+            const adminDocRef = doc(db, "admins", uid);
+            const adminDoc = await getDoc(adminDocRef);
+            if (adminDoc.exists()) {
+                ui.adminPanelBtn.classList.remove('hidden');
+            }
+        }
+
+        ui.googleLoginBtn.addEventListener('click', () => {
             const provider = new GoogleAuthProvider();
-            signInWithPopup(auth, provider)
-                .catch(error => {
-                    console.error("Erro no login com Google:", error);
-                    alert("Erro ao logar com Google. Verifique se seu domínio está autorizado no Firebase.");
-                });
+            signInWithPopup(auth, provider).catch(error => console.error("Erro no login com Google:", error));
         });
 
-        logoutBtn.addEventListener('click', () => {
-            signOut(auth);
+        ui.logoutBtn.addEventListener('click', () => signOut(auth));
+
+        // --- LÓGICA DE NAVEGAÇÃO ---
+        ui.adminPanelBtn.addEventListener('click', () => {
+            ui.userWorkoutView.classList.add('hidden');
+            ui.adminUserEditorView.classList.add('hidden');
+            ui.adminView.classList.remove('hidden');
+            renderAdminPanel();
         });
 
+        ui.backToWorkoutBtn.addEventListener('click', () => {
+            ui.adminView.classList.add('hidden');
+            ui.adminUserEditorView.classList.add('hidden');
+            ui.userWorkoutView.classList.remove('hidden');
+        });
+
+        // --- LÓGICA DE DADOS (FIRESTORE) ---
         function setupRealtimeListener(userId) {
             const userDocRef = doc(db, "users", userId);
             unsubscribeFromFirestore = onSnapshot(userDocRef, (docSnap) => {
+                ui.loadingIndicator.classList.add('hidden');
+                ui.appContainer.classList.remove('hidden');
                 if (docSnap.exists()) {
-                    loadingIndicator.classList.add('hidden');
-                    appContainer.classList.remove('hidden');
                     savedData = docSnap.data();
-                    
                     const todayStr = new Date().toISOString().split('T')[0];
                     if (savedData.lastVisit !== todayStr) {
-                        Object.values(savedData.workoutDetails).forEach(workout => {
-                            if(workout.exercicios) {
-                                workout.exercicios.forEach(ex => { ex.isDone = false; });
-                            }
-                        });
+                        Object.values(savedData.workoutDetails).forEach(w => w.exercicios?.forEach(e => e.isDone = false));
                         savedData.lastVisit = todayStr;
-                        saveData();
+                        saveData(userId, savedData);
                     } else {
-                        render();
+                        renderUserWorkout();
                     }
                 } else {
                     const initialData = createInitialDataModel();
-                    setDoc(userDocRef, initialData).then(() => {
-                        console.log("Documento inicial criado para novo usuário.");
-                    });
+                    setDoc(userDocRef, initialData);
                 }
-            }, (error) => {
-                console.error("Erro ao ouvir o Firestore:", error);
             });
         }
         
-        async function saveData() {
-            if (!currentUserId || !savedData) return;
-            const userDocRef = doc(db, "users", currentUserId);
-            try {
-                await setDoc(userDocRef, savedData, { merge: true });
-            } catch (error) {
-                console.error("Erro ao salvar dados no Firestore: ", error);
-            }
+        async function saveData(userId, data) {
+            if (!userId || !data) return;
+            const userDocRef = doc(db, "users", userId);
+            await setDoc(userDocRef, data, { merge: true });
         }
         
-        const tabsContainer = document.getElementById('tabs');
-        const workoutContentContainer = document.getElementById('workout-content');
-        const historyModal = document.getElementById('history-modal');
-        const historyModalTitle = document.getElementById('history-modal-title');
-        const historyModalBody = document.getElementById('history-modal-body');
-        const closeModalBtn = document.getElementById('close-modal-btn');
+        async function updateUserData(userId, updateObject) {
+            const userDocRef = doc(db, "users", userId);
+            await updateDoc(userDocRef, updateObject);
+        }
 
-        function render() {
+        // --- LÓGICA DE RENDERIZAÇÃO ---
+        function renderUserWorkout() {
             if (!savedData || !savedData.weekSchedule) return;
             const today = new Date();
             const todayIndex = today.getDay();
-            document.getElementById('current-date').textContent = today.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-            tabsContainer.innerHTML = '';
-            workoutContentContainer.innerHTML = '';
+            ui.currentDate.textContent = today.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+            ui.tabs.innerHTML = '';
+            ui.workoutContent.innerHTML = '';
+            
             const weekOrder = [1, 2, 3, 4, 5, 6, 0];
             const orderedSchedule = weekOrder.map(dayIdx => savedData.weekSchedule.find(d => d.dayIndex === dayIdx));
-
-            let nextWorkoutDayIndex = -1;
-            for (let i = 1; i < 7; i++) {
-                const checkIndex = (todayIndex + i) % 7;
-                const dayInfo = savedData.weekSchedule.find(d => d.dayIndex === checkIndex);
-                if (dayInfo && !dayInfo.isRestDay) {
-                    nextWorkoutDayIndex = checkIndex;
-                    break;
-                }
-            }
 
             orderedSchedule.forEach(day => {
                 if (!day) return;
                 const isToday = day.dayIndex === todayIndex;
-                const isNextWorkout = day.dayIndex === nextWorkoutDayIndex;
-
                 let badge = '';
-                if (isToday) {
-                    badge = `<span class="absolute -top-2 -right-2 text-xs bg-green-500 text-white font-bold px-2 py-0.5 rounded-full">Hoje</span>`;
-                } else if (isNextWorkout) {
-                    badge = `<span class="absolute -top-2 -right-2 text-xs bg-yellow-500 text-white font-bold px-2 py-0.5 rounded-full">Próximo</span>`;
-                } else if (day.isRestDay) {
-                    badge = `<span class="absolute -top-2 -right-2 text-xs bg-gray-600 text-white font-bold px-2 py-0.5 rounded-full">Descanso</span>`;
-                }
-
+                if (isToday) badge = `<span class="absolute -top-2 -right-2 text-xs bg-green-500 text-white font-bold px-2 py-0.5 rounded-full">Hoje</span>`;
+                
                 const tab = document.createElement('li');
                 tab.className = 'relative';
-                tab.innerHTML = `<button data-day-index="${day.dayIndex}" class="tab-button w-full h-full px-3 py-3 text-sm font-bold rounded-lg transition-all duration-200 border-2 ${isToday ? 'bg-blue-600 border-blue-400 text-white' : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:border-gray-600'}">${day.dayName}</button>${badge}`;
-                tabsContainer.appendChild(tab);
+                tab.innerHTML = `<button data-day-index="${day.dayIndex}" class="tab-button w-full h-full px-3 py-3 text-sm font-bold rounded-lg transition-all duration-200 border-2 ${isToday ? 'bg-blue-600 border-blue-400 text-white' : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'}">${day.dayName}</button>${badge}`;
+                ui.tabs.appendChild(tab);
 
                 const dayContainer = document.createElement('div');
                 dayContainer.id = `day-${day.dayIndex}`;
                 dayContainer.className = `space-y-4 ${!isToday ? 'hidden' : ''}`;
-
+                
                 if (day.isRestDay) {
-                    dayContainer.innerHTML = `<div class="bg-gray-800 p-8 rounded-lg shadow-lg text-center"><h2 class="text-2xl font-bold text-white mb-2">Dia de Descanso</h2></div>`;
+                    dayContainer.innerHTML = `<div class="bg-gray-800 p-8 rounded-lg text-center"><h2 class="text-2xl font-bold">Dia de Descanso</h2></div>`;
                 } else {
                     const workout = savedData.workoutDetails[day.workoutId];
-                    dayContainer.innerHTML = `<div class="pb-4 mb-4 border-b border-gray-700"><h2 class="text-2xl font-bold text-white">${workout.titulo}</h2></div>`;
-                    
-                    workout.exercicios.forEach(ex => {
-                        const doneClass = ex.isDone ? 'opacity-50 border-green-500' : 'border-transparent';
-                        const latestWeight = ex.historico && ex.historico.length > 0 ? ex.historico[ex.historico.length - 1].peso : 0;
-
-                        const pesoInputHTML = ex.isBodyweight ? `<div class="text-gray-400 text-sm">Peso corporal</div>` : `
-                            <div class="flex items-center gap-2">
-                                <label for="peso-${ex.id}" class="text-sm font-medium text-gray-400">Peso (kg):</label>
-                                <div class="flex items-center gap-2 bg-gray-700 rounded-md">
-                                    <button data-action="decrement" data-target="peso-${ex.id}" class="px-3 py-1 text-lg font-bold text-white rounded-l-md hover:bg-gray-600">-</button>
-                                    <input type="number" step="0.5" id="peso-${ex.id}" value="${latestWeight}" class="w-20 text-center bg-transparent border-none text-white font-semibold focus:ring-0">
-                                    <button data-action="increment" data-target="peso-${ex.id}" class="px-3 py-1 text-lg font-bold text-white rounded-r-md hover:bg-gray-600">+</button>
-                                </div>
-                            </div>`;
-
-                        const exerciseCard = document.createElement('div');
-                        exerciseCard.id = `card-${ex.id}`;
-                        exerciseCard.className = `bg-gray-800 p-4 rounded-lg shadow-md border-2 transition-all duration-300 ${doneClass}`;
-                        exerciseCard.innerHTML = `
-                            <div class="flex justify-between items-start gap-4">
-                                <div>
-                                    <h3 class="text-lg font-bold text-white">${ex.nome}</h3>
-                                    <p class="text-sm text-blue-400">${ex.series}</p>
-                                </div>
-                                <div class="flex flex-col sm:flex-row gap-2 items-end">
-                                    <button data-action="history" data-workout-id="${day.workoutId}" data-ex-id="${ex.id}" class="bg-gray-600 text-white px-3 py-2 rounded-md text-sm font-semibold hover:bg-gray-500 w-full sm:w-auto">Histórico</button>
-                                    <button data-action="save" data-workout-id="${day.workoutId}" data-ex-id="${ex.id}" class="bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-semibold hover:bg-blue-700 w-full sm:w-auto">Salvar</button>
-                                </div>
-                            </div>
-                            <div class="mt-4 flex justify-between items-center">
-                                ${pesoInputHTML}
-                                <button data-action="toggleDone" data-workout-id="${day.workoutId}" data-ex-id="${ex.id}" class="${ex.isDone ? 'bg-gray-600' : 'bg-green-600'} text-white px-3 py-2 rounded-md text-sm font-semibold transition-colors">${ex.isDone ? 'Desfazer' : 'Feito'}</button>
-                            </div>
-                        `;
-                        dayContainer.appendChild(exerciseCard);
-                    });
+                    if (!workout) {
+                        dayContainer.innerHTML = `<div class="bg-gray-800 p-8 rounded-lg text-center"><h2 class="text-xl font-bold">Nenhum treino atribuído para este dia.</h2></div>`;
+                    } else {
+                        dayContainer.innerHTML = `<div class="pb-4 mb-4 border-b border-gray-700"><h2 class="text-2xl font-bold">${workout.titulo}</h2></div>`;
+                        workout.exercicios.forEach(ex => dayContainer.innerHTML += createExerciseCardHTML(day, ex));
+                    }
                 }
-                workoutContentContainer.appendChild(dayContainer);
+                ui.workoutContent.appendChild(dayContainer);
             });
             addEventListeners();
         }
 
-        function addEventListeners() {
-            const newWorkoutContentContainer = workoutContentContainer.cloneNode(true);
-            workoutContentContainer.parentNode.replaceChild(newWorkoutContentContainer, workoutContentContainer);
+        async function renderAdminPanel() {
+            ui.userList.innerHTML = `<p>Carregando usuários...</p>`;
+            const usersCollectionRef = collection(db, "users");
+            const querySnapshot = await getDocs(usersCollectionRef);
+            ui.userList.innerHTML = '';
+            querySnapshot.forEach((doc) => {
+                const user = doc.data();
+                const userEmail = user.email || `Usuário ${doc.id.substring(0, 6)}`;
+                const userCard = document.createElement('div');
+                userCard.className = 'bg-gray-800 p-4 rounded-lg flex justify-between items-center';
+                userCard.innerHTML = `
+                    <div>
+                        <p class="font-bold">${userEmail}</p>
+                        <p class="text-xs text-gray-400">${doc.id}</p>
+                    </div>
+                    <button data-user-id="${doc.id}" data-user-email="${userEmail}" class="admin-edit-btn bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Editar Treino</button>
+                `;
+                ui.userList.appendChild(userCard);
+            });
+        }
+
+        async function renderAdminUserEditor(userId, userEmail) {
+            ui.adminView.classList.add('hidden');
+            ui.adminUserEditorView.classList.remove('hidden');
+            ui.adminUserEditorView.innerHTML = `<p>Carregando treino do usuário...</p>`;
+
+            const userDocRef = doc(db, "users", userId);
+            const userDoc = await getDoc(userDocRef);
+            if (!userDoc.exists()) {
+                ui.adminUserEditorView.innerHTML = `<p>Usuário não encontrado.</p>`;
+                return;
+            }
+            const userData = userDoc.data();
             
-            document.querySelectorAll('.tab-button').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const dayIndex = e.currentTarget.dataset.dayIndex;
-                    document.querySelectorAll('#app-container #workout-content > div').forEach(div => div.classList.add('hidden'));
-                    document.getElementById(`day-${dayIndex}`).classList.remove('hidden');
+            let editorHTML = `
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold truncate">Editando: ${userEmail}</h2>
+                    <button id="back-to-admin-panel-btn" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex-shrink-0">Voltar</button>
+                </div>
+            `;
+
+            Object.keys(userData.workoutDetails).forEach(workoutId => {
+                const workout = userData.workoutDetails[workoutId];
+                editorHTML += `
+                    <div class="bg-gray-800 p-4 rounded-lg mb-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-xl font-bold">${workout.titulo}</h3>
+                            <button data-action="delete-workout" data-workout-id="${workoutId}" data-user-id="${userId}" class="text-red-500 hover:text-red-400 text-xs">Excluir Dia</button>
+                        </div>
+                        <div class="space-y-2">
+                        ${workout.exercicios.map(ex => `
+                            <div class="flex justify-between items-center text-sm text-gray-300">
+                                <span>${ex.nome} (${ex.series})</span>
+                                <button data-action="delete-exercise" data-workout-id="${workoutId}" data-ex-id="${ex.id}" data-user-id="${userId}" class="text-red-500 hover:text-red-400 text-xs">Excluir</button>
+                            </div>
+                        `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            editorHTML += `
+                <form id="add-exercise-form" class="bg-gray-800 p-6 rounded-lg space-y-4 mt-6">
+                    <h3 class="text-xl font-bold">Adicionar Novo Exercício</h3>
+                    <select id="new-ex-workout-id" class="w-full bg-gray-700 p-2 rounded">
+                        <option value="">Selecione o Dia de Treino</option>
+                        ${Object.keys(userData.workoutDetails).map(id => `<option value="${id}">${userData.workoutDetails[id].titulo}</option>`).join('')}
+                    </select>
+                    <input type="text" id="new-ex-name" placeholder="Nome do Exercício" class="w-full bg-gray-700 p-2 rounded" required>
+                    <input type="text" id="new-ex-series" placeholder="Séries (ex: 3x 10-12)" class="w-full bg-gray-700 p-2 rounded" required>
+                    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Adicionar Exercício</button>
+                </form>
+            `;
+
+            ui.adminUserEditorView.innerHTML = editorHTML;
+        }
+        
+        // --- FUNÇÕES DE EVENTOS E HELPERS ---
+        function addEventListeners() {
+            // Limpa listeners antigos para evitar duplicação
+            const newWorkoutContent = ui.workoutContent.cloneNode(true);
+            ui.workoutContent.parentNode.replaceChild(newWorkoutContent, ui.workoutContent);
+            const newUserList = ui.userList.cloneNode(true);
+            ui.userList.parentNode.replaceChild(newUserList, ui.userList);
+            const newAdminEditor = ui.adminUserEditorView.cloneNode(true);
+            ui.adminUserEditorView.parentNode.replaceChild(newAdminEditor, ui.adminUserEditorView);
+            
+            document.querySelectorAll('.tab-button').forEach(b => b.addEventListener('click', e => {
+                document.querySelectorAll('#app-container #workout-content > div').forEach(d => d.classList.add('hidden'));
+                document.getElementById(`day-${e.currentTarget.dataset.dayIndex}`).classList.remove('hidden');
+            }));
+
+            newWorkoutContent.addEventListener('click', handleWorkoutEvent);
+            newUserList.addEventListener('click', handleAdminEvent);
+            newAdminEditor.addEventListener('click', handleAdminEditorEvent);
+            newAdminEditor.addEventListener('submit', handleAdminEditorEvent);
+            
+            ui.closeModalBtn.addEventListener('click', () => ui.historyModal.classList.add('hidden'));
+            ui.historyModal.addEventListener('click', e => { if (e.target === ui.historyModal) ui.historyModal.classList.add('hidden'); });
+        }
+
+        function handleWorkoutEvent(e) {
+            const button = e.target.closest('button');
+            if (!button) return;
+            const { action, workoutId, exId, target } = button.dataset;
+            if (!action) return;
+
+            const workout = savedData.workoutDetails[workoutId];
+            const exercicio = workout?.exercicios.find(ex => ex.id === exId);
+
+            switch (action) {
+                case 'toggleDone':
+                    exercicio.isDone = !exercicio.isDone;
+                    saveData(currentUser.uid, savedData);
+                    break;
+                case 'save':
+                    const pesoInput = document.getElementById(`peso-${exId}`);
+                    if (!pesoInput) return;
+                    const newPeso = parseFloat(pesoInput.value);
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    if (!exercicio.historico) exercicio.historico = [];
+                    const todayEntryIndex = exercicio.historico.findIndex(entry => entry.data === todayStr);
+                    if (todayEntryIndex > -1) exercicio.historico[todayEntryIndex].peso = newPeso;
+                    else exercicio.historico.push({ data: todayStr, peso: newPeso });
+                    saveData(currentUser.uid, savedData);
+                    break;
+                case 'history':
+                    ui.historyModalTitle.textContent = `Histórico de: ${exercicio.nome}`;
+                    ui.historyModalBody.innerHTML = '';
+                    if (!exercicio.historico || exercicio.historico.length === 0) {
+                        ui.historyModalBody.innerHTML = `<p class="text-gray-400">Nenhum registro.</p>`;
+                    } else {
+                        const list = [...exercicio.historico].reverse().map(entry => {
+                            const date = new Date(entry.data);
+                            const formattedDate = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
+                            return `<li class="flex justify-between items-center bg-gray-700 p-2 rounded-md"><span>${formattedDate}</span><span class="font-bold">${entry.peso} kg</span></li>`;
+                        }).join('');
+                        ui.historyModalBody.innerHTML = `<ul class="space-y-2">${list}</ul>`;
+                    }
+                    ui.historyModal.classList.remove('hidden');
+                    break;
+                case 'increment':
+                case 'decrement':
+                     const targetInput = document.getElementById(target);
+                     let currentValue = parseFloat(targetInput.value);
+                     targetInput.value = action === 'increment' ? currentValue + 1 : Math.max(0, currentValue - 1);
+                     break;
+            }
+        }
+
+        function handleAdminEvent(e) {
+            const button = e.target.closest('.admin-edit-btn');
+            if (button) {
+                const { userId, userEmail } = button.dataset;
+                renderAdminUserEditor(userId, userEmail);
+            }
+        }
+
+        async function handleAdminEditorEvent(e) {
+            e.preventDefault();
+            const element = e.target;
+            const action = element.dataset.action || (e.type === 'submit' ? 'add-exercise' : null);
+            if (!action) return;
+
+            if (action === 'add-exercise') {
+                const form = document.getElementById('add-exercise-form');
+                const userId = document.querySelector('#admin-user-editor-view .flex-shrink-0').id.replace('back-to-admin-panel-btn-',''); // A bit hacky way to get userId
+                const workoutId = form.querySelector('#new-ex-workout-id').value;
+                const name = form.querySelector('#new-ex-name').value;
+                const series = form.querySelector('#new-ex-series').value;
+
+                if (!workoutId || !name || !series) { alert('Preencha todos os campos.'); return; }
+
+                const newExercise = { id: name.toLowerCase().replace(/\s/g, '-'), nome: name, series: series, historico: [], isDone: false };
+                
+                const userDocRef = doc(db, "users", userId);
+                await updateDoc(userDocRef, {
+                    [`workoutDetails.${workoutId}.exercicios`]: arrayUnion(newExercise)
                 });
-            });
+                renderAdminUserEditor(userId, (await getDoc(userDocRef)).data().email);
+            }
+            
+            if (action === 'delete-exercise') {
+                const { userId, workoutId, exId } = element.dataset;
+                if (!confirm(`Tem certeza que deseja excluir o exercício?`)) return;
 
-            newWorkoutContentContainer.addEventListener('click', (e) => {
-                const button = e.target.closest('button');
-                if (!button) return;
-                const action = button.dataset.action;
-                if (!action) return;
+                const userDocRef = doc(db, "users", userId);
+                const userDoc = await getDoc(userDocRef);
+                const userData = userDoc.data();
+                const exerciseToDelete = userData.workoutDetails[workoutId].exercicios.find(ex => ex.id === exId);
+                
+                await updateDoc(userDocRef, {
+                    [`workoutDetails.${workoutId}.exercicios`]: arrayRemove(exerciseToDelete)
+                });
+                renderAdminUserEditor(userId, userData.email);
+            }
+            
+            if (element.id === 'back-to-admin-panel-btn') {
+                 ui.adminUserEditorView.classList.add('hidden');
+                 ui.adminView.classList.remove('hidden');
+                 renderAdminPanel();
+            }
+        }
 
-                const workoutId = button.dataset.workoutId;
-                const exId = button.dataset.exId;
-                const workout = savedData.workoutDetails[workoutId];
-                const exercicio = workout?.exercicios.find(ex => ex.id === exId);
-
-                switch (action) {
-                    case 'toggleDone':
-                        // ** CORREÇÃO APLICADA AQUI **
-                        // Atualiza o estado local primeiro para feedback instantâneo
-                        exercicio.isDone = !exercicio.isDone;
-
-                        // Atualiza a UI imediatamente (Optimistic UI)
-                        const card = document.getElementById(`card-${exId}`);
-                        card.classList.toggle('opacity-50');
-                        card.classList.toggle('border-green-500');
-                        card.classList.toggle('border-transparent');
-                        button.textContent = exercicio.isDone ? 'Desfazer' : 'Feito';
-                        button.classList.toggle('bg-green-600');
-                        button.classList.toggle('bg-gray-600');
-                        
-                        // Salva no Firebase em segundo plano
-                        saveData();
-                        break;
-                    case 'save':
-                        const pesoInput = document.getElementById(`peso-${exId}`);
-                        if (!pesoInput) return;
-                        const newPeso = parseFloat(pesoInput.value);
-                        const todayStr = new Date().toISOString().split('T')[0];
-                        if (!exercicio.historico) { exercicio.historico = []; }
-                        const todayEntryIndex = exercicio.historico.findIndex(entry => entry.data === todayStr);
-                        if (todayEntryIndex > -1) {
-                            exercicio.historico[todayEntryIndex].peso = newPeso;
-                        } else {
-                            exercicio.historico.push({ data: todayStr, peso: newPeso });
-                        }
-                        saveData();
-                        // Feedback visual para o botão Salvar
-                        const originalText = button.textContent;
-                        button.textContent = 'Salvo!';
-                        button.classList.replace('bg-blue-600', 'bg-green-500');
-                        button.disabled = true;
-                        setTimeout(() => {
-                            button.textContent = originalText;
-                            button.classList.replace('bg-green-500', 'bg-blue-600');
-                            button.disabled = false;
-                        }, 1500);
-                        break;
-                    case 'history':
-                        historyModalTitle.textContent = `Histórico de: ${exercicio.nome}`;
-                        historyModalBody.innerHTML = '';
-                        if (!exercicio.historico || exercicio.historico.length === 0) {
-                            historyModalBody.innerHTML = `<p class="text-gray-400">Nenhum registro.</p>`;
-                        } else {
-                            const list = document.createElement('ul');
-                            list.className = 'space-y-2';
-                            [...exercicio.historico].reverse().forEach(entry => {
-                                const date = new Date(entry.data);
-                                const formattedDate = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
-                                list.innerHTML += `<li class="flex justify-between items-center bg-gray-700 p-2 rounded-md"><span>${formattedDate}</span><span class="font-bold">${entry.peso} kg</span></li>`;
-                            });
-                            historyModalBody.appendChild(list);
-                        }
-                        historyModal.classList.remove('hidden');
-                        break;
-                    case 'increment':
-                    case 'decrement':
-                         const targetInput = document.getElementById(e.target.dataset.target);
-                         let currentValue = parseFloat(targetInput.value);
-                         const incrementValue = 1; 
-                         targetInput.value = action === 'increment' ? currentValue + incrementValue : Math.max(0, currentValue - incrementValue);
-                         break;
-                }
-            });
-
-            closeModalBtn.addEventListener('click', () => historyModal.classList.add('hidden'));
-            historyModal.addEventListener('click', (e) => {
-                if (e.target === historyModal) {
-                    historyModal.classList.add('hidden');
-                }
-            });
+        function createExerciseCardHTML(day, ex) {
+            const doneClass = ex.isDone ? 'opacity-50 border-green-500' : 'border-transparent';
+            const latestWeight = ex.historico?.length > 0 ? ex.historico[ex.historico.length - 1].peso : 0;
+            return `
+                <div id="card-${ex.id}" class="bg-gray-800 p-4 rounded-lg shadow-md border-2 transition-all duration-300 ${doneClass}">
+                    <div class="flex justify-between items-start gap-4">
+                        <div><h3 class="text-lg font-bold">${ex.nome}</h3><p class="text-sm text-blue-400">${ex.series}</p></div>
+                        <div class="flex flex-col sm:flex-row gap-2 items-end">
+                            <button data-action="history" data-workout-id="${day.workoutId}" data-ex-id="${ex.id}" class="bg-gray-600 text-white px-3 py-2 rounded-md text-sm font-semibold hover:bg-gray-500 w-full sm:w-auto">Histórico</button>
+                            <button data-action="save" data-workout-id="${day.workoutId}" data-ex-id="${ex.id}" class="bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-semibold hover:bg-blue-700 w-full sm:w-auto">Salvar</button>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <label for="peso-${ex.id}" class="text-sm font-medium text-gray-400">Peso (kg):</label>
+                            <div class="flex items-center gap-2 bg-gray-700 rounded-md">
+                                <button data-action="decrement" data-target="peso-${ex.id}" class="px-3 py-1 text-lg font-bold hover:bg-gray-600">-</button>
+                                <input type="number" step="0.5" id="peso-${ex.id}" value="${latestWeight}" class="w-20 text-center bg-transparent border-none focus:ring-0">
+                                <button data-action="increment" data-target="peso-${ex.id}" class="px-3 py-1 text-lg font-bold hover:bg-gray-600">+</button>
+                            </div>
+                        </div>
+                        <button data-action="toggleDone" data-workout-id="${day.workoutId}" data-ex-id="${ex.id}" class="${ex.isDone ? 'bg-gray-600' : 'bg-green-600'} text-white px-3 py-2 rounded-md text-sm font-semibold">${ex.isDone ? 'Desfazer' : 'Feito'}</button>
+                    </div>
+                </div>
+            `;
         }
         
         function createInitialDataModel() {
             return JSON.parse(JSON.stringify({
                 lastVisit: new Date().toISOString().split('T')[0],
+                email: auth.currentUser.email,
                 weekSchedule: [ { dayIndex: 1, dayName: 'Seg', workoutId: 'dia1' }, { dayIndex: 2, dayName: 'Ter', workoutId: 'dia2' }, { dayIndex: 3, dayName: 'Qua', isRestDay: true }, { dayIndex: 4, dayName: 'Qui', workoutId: 'dia3' }, { dayIndex: 5, dayName: 'Sex', workoutId: 'dia4' }, { dayIndex: 6, dayName: 'Sáb', isRestDay: true }, { dayIndex: 0, dayName: 'Dom', isRestDay: true } ],
-                workoutDetails: { 'dia1': { titulo: 'Superiores (Peito, Ombros e Tríceps)', exercicios: [ { id: 'supino-maquina', nome: 'Supino Máquina (Peg. Pronada)', series: '4x 8-12', historico: [], isDone: false }, { id: 'desenv-convergente', nome: 'Desenvolvimento Convergente Aberto', series: '3x 8-12', historico: [], isDone: false }, { id: 'crucifixo-maquina', nome: 'Crucifixo Máquina (Peg. Neutra)', series: '3x 10-15', historico: [], isDone: false }, { id: 'elevacao-lateral', nome: 'Elevação Lateral com Halteres', series: '4x 12-15', historico: [], isDone: false }, { id: 'triceps-corda', nome: 'Tríceps Corda (Polia Alta)', series: '3x 10-15', historico: [], isDone: false }, { id: 'triceps-frances', nome: 'Tríceps Francês (Corda ou Barra)', series: '3x 10-15', historico: [], isDone: false }, { id: 'prancha-frontal', nome: 'Prancha Frontal', series: '3x Falha', historico: [], isBodyweight: true, isDone: false } ] }, 'dia2': { titulo: 'Inferiores (Foco em Quadríceps)', exercicios: [ { id: 'agachamento-hack', nome: 'Agachamento no Hack 45°', series: '4x 8-12', historico: [], isDone: false }, { id: 'leg-press-45', nome: 'Leg Press 45°', series: '4x 10-15', historico: [], isDone: false }, { id: 'cadeira-extensora', nome: 'Cadeira Extensora', series: '3x 12-15', historico: [], isDone: false }, { id: 'cadeira-adutora', nome: 'Cadeira Adutora', series: '3x 12-15', historico: [], isDone: false }, { id: 'panturrilha-pe', nome: 'Panturrilha na Máquina (em pé)', series: '4x 15-20', historico: [], isDone: false }, { id: 'abdomen-maquina', nome: 'Abdômen na Máquina', series: '3x 12-15', historico: [], isDone: false } ] }, 'dia3': { titulo: 'Superiores (Costas, Bíceps e Ombro Posterior)', exercicios: [ { id: 'puxada-aberta', nome: 'Puxada Aberta na Frente', series: '4x 8-12', historico: [], isDone: false }, { id: 'remada-pronada', nome: 'Remada Máquina (Peg. Pronada)', series: '4x 8-12', historico: [], isDone: false }, { id: 'remada-unilateral', nome: 'Remada Unilateral (Peg. Neutra)', series: '3x 10-12', historico: [], isDone: false }, { id: 'crucifixo-inverso', nome: 'Crucifixo Invertido', series: '4x 12-15', historico: [], isDone: false }, { id: 'rosca-direta', nome: 'Rosca Direta (Barra ou Polia)', series: '3x 10-12', historico: [], isDone: false }, { id: 'rosca-alternada', nome: 'Rosca Alternada com Halteres', series: '3x 10-12', historico: [], isDone: false }, { id: 'abdomen-remador', nome: 'Abdômen Remador', series: '3x Falha', historico: [], isBodyweight: true, isDone: false } ] }, 'dia4': { titulo: 'Inferiores (Foco em Posterior e Glúteos)', exercicios: [ { id: 'mesa-flexora', nome: 'Mesa Flexora', series: '4x 10-15', historico: [], isDone: false }, { id: 'agachamento-smith', nome: 'Agachamento no Smith', series: '4x 8-12', historico: [], isDone: false }, { id: 'elevacao-pelvica', nome: 'Elevação Pélvica (Hip Thrust)', series: '4x 10-15', historico: [], isDone: false }, { id: 'cadeira-abdutora', nome: 'Cadeira Abdutora', series: '4x 15-20', historico: [], isDone: false }, { id: 'leg-horizontal', nome: 'Leg Horizontal', series: '3x 10-15', historico: [], isDone: false }, { id: 'panturrilha-sentado', nome: 'Panturrilha na Máquina (sentado)', series: '4x 15-20', historico: [], isDone: false }, { id: 'abdomen-supra', nome: 'Abdômen Supra (chão)', series: '3x Falha', historico: [], isBodyweight: true, isDone: false } ] } }
+                workoutDetails: { 'dia1': { titulo: 'Superiores (Peito, Ombros e Tríceps)', exercicios: [ { id: 'supino-maquina', nome: 'Supino Máquina (Peg. Pronada)', series: '4x 8-12', historico: [], isDone: false }, { id: 'desenv-convergente', nome: 'Desenvolvimento Convergente Aberto', series: '3x 8-12', historico: [], isDone: false } ] }, 'dia2': { titulo: 'Inferiores (Foco em Quadríceps)', exercicios: [ { id: 'agachamento-hack', nome: 'Agachamento no Hack 45°', series: '4x 8-12', historico: [], isDone: false } ] }, 'dia3': { titulo: 'Superiores (Costas, Bíceps)', exercicios: [ { id: 'puxada-aberta', nome: 'Puxada Aberta na Frente', series: '4x 8-12', historico: [], isDone: false } ] }, 'dia4': { titulo: 'Inferiores (Foco em Posterior e Glúteos)', exercicios: [ { id: 'mesa-flexora', nome: 'Mesa Flexora', series: '4x 10-15', historico: [], isDone: false } ] } }
             }));
         }
 
