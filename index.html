@@ -256,9 +256,7 @@
             });
             
             const activeTab = document.querySelector(`.tab-button[data-day-index="${todayIndex}"]`);
-            if (activeTab) {
-                activeTab.classList.replace('bg-gray-800', 'bg-blue-600');
-            }
+            if (activeTab) activeTab.classList.replace('bg-gray-800', 'bg-blue-600');
             document.getElementById(`day-${todayIndex}`).classList.remove('hidden');
         }
 
@@ -324,14 +322,14 @@
                         ${workout.exercicios.map(ex => `
                             <div class="flex justify-between items-center text-sm text-gray-300 border-b border-gray-700 py-1">
                                 <span>${ex.nome} (${ex.series})</span>
-                                <button data-action="delete-exercise" data-workout-id="${workoutId}" data-ex-id="${ex.id}" data-user-id="${userId}" data-user-email="${userEmail}" class="text-red-500 hover:text-red-400 text-xs font-semibold">Excluir</button>
+                                <button data-action="delete-exercise" data-workout-id="${workoutId}" data-ex-id="${ex.id}" class="text-red-500 hover:text-red-400 text-xs font-semibold">Excluir</button>
                             </div>`).join('')}
                         </div>
                     </div>`;
             });
             
             editorHTML += `
-                <form id="add-exercise-form" data-user-id="${userId}" data-user-email="${userEmail}" class="bg-gray-800 p-6 rounded-lg space-y-4 mt-6">
+                <form id="add-exercise-form" class="bg-gray-800 p-6 rounded-lg space-y-4 mt-6">
                     <h3 class="text-xl font-bold">Adicionar Exercício</h3>
                     <select id="new-ex-workout-id" class="w-full bg-gray-700 p-2 rounded"><option value="">Selecione o Plano de Treino</option>${workoutOptions}</select>
                     <input type="text" id="new-ex-name" placeholder="Nome do Exercício" class="w-full bg-gray-700 p-2 rounded" required>
@@ -343,17 +341,12 @@
         }
         
         // --- EVENT LISTENERS ---
-        function addEventListeners() {
-            ui.appContainer.addEventListener('click', handleAppClick);
-            ui.adminUserEditorView.addEventListener('submit', handleAdminEditorEvent);
-            ui.adminUserEditorView.addEventListener('change', handleAdminEditorEvent);
-            ui.closeModalBtn.addEventListener('click', () => ui.historyModal.classList.add('hidden'));
-            ui.historyModal.addEventListener('click', e => { if (e.target === ui.historyModal) ui.historyModal.classList.add('hidden'); });
-        }
-
-        function handleAppClick(e) {
+        document.body.addEventListener('click', (e) => {
             const button = e.target.closest('button');
             if (!button) return;
+
+            const action = button.dataset.action;
+            if (action) e.preventDefault();
 
             if (button.classList.contains('tab-button')) {
                 document.querySelectorAll('.tab-button').forEach(btn => btn.classList.replace('bg-blue-600', 'bg-gray-800'));
@@ -366,7 +359,12 @@
             if (ui.userWorkoutView.contains(button)) handleWorkoutEvent(button);
             if (ui.adminView.contains(button)) handleAdminEvent(button);
             if (ui.adminUserEditorView.contains(button)) handleAdminEditorEvent(e);
-        }
+        });
+
+        ui.adminUserEditorView.addEventListener('submit', handleAdminEditorEvent);
+        ui.adminUserEditorView.addEventListener('change', handleAdminEditorEvent);
+        ui.closeModalBtn.addEventListener('click', () => ui.historyModal.classList.add('hidden'));
+        ui.historyModal.addEventListener('click', e => { if (e.target === ui.historyModal) ui.historyModal.classList.add('hidden'); });
 
         function handleWorkoutEvent(button) {
             const { action, workoutId, exId, target } = button.dataset;
@@ -458,10 +456,11 @@
                     return day;
                 });
                 await updateUserData(userId, { weekSchedule: newSchedule });
-            } else if (action === 'back-to-admin') {
+            } else if (action === 'back-to-admin' || action === 'back-to-workout') {
                  ui.adminUserEditorView.classList.add('hidden');
-                 ui.adminView.classList.remove('hidden');
-                 renderAdminPanel();
+                 ui.adminView.classList.add('hidden');
+                 ui.userWorkoutView.classList.remove('hidden');
+                 if(action === 'back-to-admin') renderAdminPanel();
             }
         }
 
