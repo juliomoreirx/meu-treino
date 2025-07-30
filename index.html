@@ -69,7 +69,7 @@
         <div id="admin-view" class="hidden">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-3xl font-bold">Painel de Administração</h2>
-                <button id="back-to-workout-btn" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">Voltar ao meu treino</button>
+                <button data-action="back-to-workout" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">Voltar ao meu treino</button>
             </div>
             <div id="user-list" class="space-y-3"></div>
         </div>
@@ -123,7 +123,6 @@
             userWorkoutView: document.getElementById('user-workout-view'),
             adminView: document.getElementById('admin-view'),
             adminUserEditorView: document.getElementById('admin-user-editor-view'),
-            backToWorkoutBtn: document.getElementById('back-to-workout-btn'),
             userList: document.getElementById('user-list'),
             tabs: document.getElementById('tabs'),
             workoutContent: document.getElementById('workout-content'),
@@ -168,19 +167,6 @@
         });
 
         ui.logoutBtn.addEventListener('click', () => signOut(auth));
-
-        ui.adminPanelBtn.addEventListener('click', () => {
-            ui.userWorkoutView.classList.add('hidden');
-            ui.adminUserEditorView.classList.add('hidden');
-            ui.adminView.classList.remove('hidden');
-            renderAdminPanel();
-        });
-
-        ui.backToWorkoutBtn.addEventListener('click', () => {
-            ui.adminView.classList.add('hidden');
-            ui.adminUserEditorView.classList.add('hidden');
-            ui.userWorkoutView.classList.remove('hidden');
-        });
 
         function setupRealtimeListener(userId) {
             const userDocRef = doc(db, "users", userId);
@@ -271,11 +257,9 @@
             
             const activeTab = document.querySelector(`.tab-button[data-day-index="${todayIndex}"]`);
             if (activeTab) {
-                activeTab.classList.remove('bg-gray-800');
-                activeTab.classList.add('bg-blue-600');
+                activeTab.classList.replace('bg-gray-800', 'bg-blue-600');
             }
             document.getElementById(`day-${todayIndex}`).classList.remove('hidden');
-            addEventListeners();
         }
 
         async function renderAdminPanel() {
@@ -303,7 +287,8 @@
             if (!userDoc.exists()) { ui.adminUserEditorView.innerHTML = `<p>Usuário não encontrado.</p>`; return; }
             
             const userData = userDoc.data();
-            const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+            const weekDays = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+            const weekOrder = [1, 2, 3, 4, 5, 6, 0];
             const workoutOptions = Object.keys(userData.workoutDetails).map(id => `<option value="${id}">${userData.workoutDetails[id].titulo}</option>`).join('');
 
             let editorHTML = `
@@ -313,19 +298,19 @@
                 </div>
                 <div class="bg-gray-800 p-6 rounded-lg mb-6">
                     <h3 class="text-xl font-bold mb-4">Agenda Semanal</h3>
-                    <div class="space-y-3">
+                    <div class="space-y-3" data-user-id="${userId}" data-user-email="${userEmail}">
                     ${weekOrder.map(dayIndex => {
                         const daySchedule = userData.weekSchedule.find(d => d.dayIndex === dayIndex);
                         const selectedWorkoutId = daySchedule && !daySchedule.isRestDay ? daySchedule.workoutId : 'rest';
                         return `
                         <div class="flex items-center justify-between">
-                            <span class="font-semibold">${weekDays[dayIndex]}</span>
-                            <select data-action="update-schedule" data-day-index="${dayIndex}" data-user-id="${userId}" class="bg-gray-700 p-2 rounded">
+                            <span class="font-semibold w-24">${weekDays[dayIndex]}</span>
+                            <select data-action="update-schedule" data-day-index="${dayIndex}" class="bg-gray-700 p-2 rounded w-full">
                                 <option value="rest" ${selectedWorkoutId === 'rest' ? 'selected' : ''}>-- Dia de Descanso --</option>
-                                ${workoutOptions}
+                                ${workoutOptions.replace(`value="${selectedWorkoutId}"`, `value="${selectedWorkoutId}" selected`)}
                             </select>
-                        `.replace(`value="${selectedWorkoutId}"`, `value="${selectedWorkoutId}" selected`);
-                    }).join('</div>')}
+                        </div>`;
+                    }).join('')}
                     </div>
                 </div>
             `;
@@ -348,7 +333,7 @@
             editorHTML += `
                 <form id="add-exercise-form" data-user-id="${userId}" data-user-email="${userEmail}" class="bg-gray-800 p-6 rounded-lg space-y-4 mt-6">
                     <h3 class="text-xl font-bold">Adicionar Exercício</h3>
-                    <select id="new-ex-workout-id" class="w-full bg-gray-700 p-2 rounded"><option value="">Selecione o Dia de Treino</option>${workoutOptions}</select>
+                    <select id="new-ex-workout-id" class="w-full bg-gray-700 p-2 rounded"><option value="">Selecione o Plano de Treino</option>${workoutOptions}</select>
                     <input type="text" id="new-ex-name" placeholder="Nome do Exercício" class="w-full bg-gray-700 p-2 rounded" required>
                     <input type="text" id="new-ex-series" placeholder="Séries (ex: 3x 10-12)" class="w-full bg-gray-700 p-2 rounded" required>
                     <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Adicionar Exercício</button>
@@ -357,28 +342,30 @@
             ui.adminUserEditorView.innerHTML = editorHTML;
         }
         
+        // --- EVENT LISTENERS ---
         function addEventListeners() {
-            ui.appContainer.addEventListener('click', (e) => {
-                const button = e.target.closest('button');
-                if (!button) return;
-                
-                if (button.classList.contains('tab-button')) {
-                    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.replace('bg-blue-600', 'bg-gray-800'));
-                    button.classList.replace('bg-gray-800', 'bg-blue-600');
-                    document.querySelectorAll('#workout-content > div').forEach(d => d.classList.add('hidden'));
-                    document.getElementById(`day-${button.dataset.dayIndex}`).classList.remove('hidden');
-                    return;
-                }
-                
-                if (ui.userWorkoutView.contains(button)) handleWorkoutEvent(button);
-                if (ui.adminView.contains(button)) handleAdminEvent(button);
-                if (ui.adminUserEditorView.contains(button)) handleAdminEditorEvent(button);
-            });
-
+            ui.appContainer.addEventListener('click', handleAppClick);
             ui.adminUserEditorView.addEventListener('submit', handleAdminEditorEvent);
             ui.adminUserEditorView.addEventListener('change', handleAdminEditorEvent);
             ui.closeModalBtn.addEventListener('click', () => ui.historyModal.classList.add('hidden'));
             ui.historyModal.addEventListener('click', e => { if (e.target === ui.historyModal) ui.historyModal.classList.add('hidden'); });
+        }
+
+        function handleAppClick(e) {
+            const button = e.target.closest('button');
+            if (!button) return;
+
+            if (button.classList.contains('tab-button')) {
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.replace('bg-blue-600', 'bg-gray-800'));
+                button.classList.replace('bg-gray-800', 'bg-blue-600');
+                document.querySelectorAll('#workout-content > div').forEach(d => d.classList.add('hidden'));
+                document.getElementById(`day-${button.dataset.dayIndex}`).classList.remove('hidden');
+                return;
+            }
+            
+            if (ui.userWorkoutView.contains(button)) handleWorkoutEvent(button);
+            if (ui.adminView.contains(button)) handleAdminEvent(button);
+            if (ui.adminUserEditorView.contains(button)) handleAdminEditorEvent(e);
         }
 
         function handleWorkoutEvent(button) {
@@ -390,6 +377,13 @@
             switch (action) {
                 case 'toggleDone':
                     exercicio.isDone = !exercicio.isDone;
+                    const card = document.getElementById(`card-${exId}`);
+                    card.classList.toggle('opacity-50');
+                    card.classList.toggle('border-green-500');
+                    card.classList.toggle('border-transparent');
+                    button.textContent = exercicio.isDone ? 'Desfazer' : 'Feito';
+                    button.classList.toggle('bg-green-600');
+                    button.classList.toggle('bg-gray-600');
                     saveData(currentUser.uid, savedData);
                     break;
                 case 'save':
@@ -404,7 +398,7 @@
                     saveData(currentUser.uid, savedData);
                     break;
                 case 'history':
-                    // ... (código do histórico permanece o mesmo)
+                    // ... (código do histórico)
                     break;
                 case 'increment':
                 case 'decrement':
@@ -415,20 +409,21 @@
         }
 
         function handleAdminEvent(button) {
-            if (button.dataset.action === 'admin-edit') {
-                const { userId, userEmail } = button.dataset;
+            const { action, userId, userEmail } = button.dataset;
+            if (action === 'admin-edit') {
                 renderAdminUserEditor(userId, userEmail);
             }
         }
 
         async function handleAdminEditorEvent(e) {
             const element = e.target;
-            e.preventDefault();
             const action = element.dataset.action || (element.tagName === 'FORM' ? 'add-exercise' : null);
             if (!action) return;
+            e.preventDefault();
 
-            const userId = element.closest('[data-user-id]')?.dataset.userId;
-            const userEmail = element.closest('[data-user-email]')?.dataset.userEmail;
+            const container = element.closest('[data-user-id]');
+            const userId = container.dataset.userId;
+            const userEmail = container.dataset.userEmail;
 
             if (action === 'add-exercise') {
                 const form = element;
@@ -458,7 +453,7 @@
                 const userData = userDoc.data();
                 const newSchedule = userData.weekSchedule.map(day => {
                     if (day.dayIndex === dayIndex) {
-                        return { dayIndex: dayIndex, dayName: day.dayName, workoutId: newWorkoutId === 'rest' ? null : newWorkoutId, isRestDay: newWorkoutId === 'rest' };
+                        return { ...day, workoutId: newWorkoutId === 'rest' ? null : newWorkoutId, isRestDay: newWorkoutId === 'rest' };
                     }
                     return day;
                 });
