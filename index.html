@@ -161,13 +161,6 @@
             ui.adminPanelBtn.classList.toggle('hidden', !adminDoc.exists());
         }
 
-        ui.googleLoginBtn.addEventListener('click', () => {
-            const provider = new GoogleAuthProvider();
-            signInWithPopup(auth, provider).catch(error => console.error("Erro no login com Google:", error));
-        });
-
-        ui.logoutBtn.addEventListener('click', () => signOut(auth));
-
         function setupRealtimeListener(userId) {
             const userDocRef = doc(db, "users", userId);
             unsubscribeFromFirestore = onSnapshot(userDocRef, (docSnap) => {
@@ -290,28 +283,29 @@
             const workoutOptions = Object.keys(userData.workoutDetails).map(id => `<option value="${id}">${userData.workoutDetails[id].titulo}</option>`).join('');
 
             let editorHTML = `
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-bold truncate">Editando: ${userEmail}</h2>
-                    <button data-action="back-to-admin" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex-shrink-0">Voltar</button>
-                </div>
-                <div class="bg-gray-800 p-6 rounded-lg mb-6">
-                    <h3 class="text-xl font-bold mb-4">Agenda Semanal</h3>
-                    <div class="space-y-3" data-user-id="${userId}" data-user-email="${userEmail}">
-                    ${weekOrder.map(dayIndex => {
-                        const daySchedule = userData.weekSchedule.find(d => d.dayIndex === dayIndex);
-                        const selectedWorkoutId = daySchedule && !daySchedule.isRestDay ? daySchedule.workoutId : 'rest';
-                        return `
-                        <div class="flex items-center justify-between">
-                            <span class="font-semibold w-24">${weekDays[dayIndex]}</span>
-                            <select data-action="update-schedule" data-day-index="${dayIndex}" class="bg-gray-700 p-2 rounded w-full">
-                                <option value="rest" ${selectedWorkoutId === 'rest' ? 'selected' : ''}>-- Dia de Descanso --</option>
-                                ${workoutOptions.replace(`value="${selectedWorkoutId}"`, `value="${selectedWorkoutId}" selected`)}
-                            </select>
-                        </div>`;
-                    }).join('')}
+                <div data-user-id="${userId}" data-user-email="${userEmail}">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-bold truncate">Editando: ${userEmail}</h2>
+                        <button data-action="back-to-admin" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex-shrink-0">Voltar</button>
                     </div>
-                </div>
-            `;
+                    <div class="bg-gray-800 p-6 rounded-lg mb-6">
+                        <h3 class="text-xl font-bold mb-4">Agenda Semanal</h3>
+                        <div class="space-y-3">
+                        ${weekOrder.map(dayIndex => {
+                            const daySchedule = userData.weekSchedule.find(d => d.dayIndex === dayIndex);
+                            const selectedWorkoutId = daySchedule && !daySchedule.isRestDay ? daySchedule.workoutId : 'rest';
+                            return `
+                            <div class="flex items-center justify-between">
+                                <span class="font-semibold w-24">${weekDays[dayIndex]}</span>
+                                <select data-action="update-schedule" data-day-index="${dayIndex}" class="bg-gray-700 p-2 rounded w-full">
+                                    <option value="rest" ${selectedWorkoutId === 'rest' ? 'selected' : ''}>-- Dia de Descanso --</option>
+                                    ${workoutOptions.replace(`value="${selectedWorkoutId}"`, `value="${selectedWorkoutId}" selected`)}
+                                </select>
+                            </div>`;
+                        }).join('')}
+                        </div>
+                    </div>
+                `;
 
             Object.keys(userData.workoutDetails).forEach(workoutId => {
                 const workout = userData.workoutDetails[workoutId];
@@ -329,13 +323,15 @@
             });
             
             editorHTML += `
-                <form id="add-exercise-form" class="bg-gray-800 p-6 rounded-lg space-y-4 mt-6">
-                    <h3 class="text-xl font-bold">Adicionar Exercício</h3>
-                    <select id="new-ex-workout-id" class="w-full bg-gray-700 p-2 rounded"><option value="">Selecione o Plano de Treino</option>${workoutOptions}</select>
-                    <input type="text" id="new-ex-name" placeholder="Nome do Exercício" class="w-full bg-gray-700 p-2 rounded" required>
-                    <input type="text" id="new-ex-series" placeholder="Séries (ex: 3x 10-12)" class="w-full bg-gray-700 p-2 rounded" required>
-                    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Adicionar Exercício</button>
-                </form>`;
+                    <form id="add-exercise-form" class="bg-gray-800 p-6 rounded-lg space-y-4 mt-6">
+                        <h3 class="text-xl font-bold">Adicionar Exercício</h3>
+                        <select id="new-ex-workout-id" class="w-full bg-gray-700 p-2 rounded"><option value="">Selecione o Plano de Treino</option>${workoutOptions}</select>
+                        <input type="text" id="new-ex-name" placeholder="Nome do Exercício" class="w-full bg-gray-700 p-2 rounded" required>
+                        <input type="text" id="new-ex-series" placeholder="Séries (ex: 3x 10-12)" class="w-full bg-gray-700 p-2 rounded" required>
+                        <button type="submit" data-action="add-exercise" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Adicionar Exercício</button>
+                    </form>
+                </div>
+            `;
 
             ui.adminUserEditorView.innerHTML = editorHTML;
         }
@@ -346,9 +342,9 @@
             if (!button) return;
 
             const action = button.dataset.action;
-            if (action) e.preventDefault();
-
+            
             if (button.classList.contains('tab-button')) {
+                e.preventDefault();
                 document.querySelectorAll('.tab-button').forEach(btn => btn.classList.replace('bg-blue-600', 'bg-gray-800'));
                 button.classList.replace('bg-gray-800', 'bg-blue-600');
                 document.querySelectorAll('#workout-content > div').forEach(d => d.classList.add('hidden'));
@@ -456,11 +452,13 @@
                     return day;
                 });
                 await updateUserData(userId, { weekSchedule: newSchedule });
-            } else if (action === 'back-to-admin' || action === 'back-to-workout') {
+            } else if (action === 'back-to-admin') {
                  ui.adminUserEditorView.classList.add('hidden');
+                 ui.adminView.classList.remove('hidden');
+                 renderAdminPanel();
+            } else if (action === 'back-to-workout') {
                  ui.adminView.classList.add('hidden');
                  ui.userWorkoutView.classList.remove('hidden');
-                 if(action === 'back-to-admin') renderAdminPanel();
             }
         }
 
