@@ -282,7 +282,6 @@
                 ui.workoutContent.appendChild(dayContainer);
             });
             
-            // Ativa a aba do dia atual
             const activeTab = document.querySelector(`.tab-button[data-day-index="${todayIndex}"]`);
             if (activeTab) {
                 activeTab.classList.remove('bg-gray-800');
@@ -343,13 +342,13 @@
                     <div class="bg-gray-800 p-4 rounded-lg mb-4">
                         <div class="flex justify-between items-center mb-3">
                             <h3 class="text-xl font-bold">${workout.titulo}</h3>
-                            <button data-action="delete-workout" data-workout-id="${workoutId}" data-user-id="${userId}" class="text-red-500 hover:text-red-400 text-xs font-semibold">Excluir Dia</button>
+                            <button data-action="delete-workout" data-workout-id="${workoutId}" data-user-id="${userId}" data-user-email="${userEmail}" class="text-red-500 hover:text-red-400 text-xs font-semibold">Excluir Dia</button>
                         </div>
                         <div class="space-y-2">
                         ${workout.exercicios.map(ex => `
                             <div class="flex justify-between items-center text-sm text-gray-300 border-b border-gray-700 py-1">
                                 <span>${ex.nome} (${ex.series})</span>
-                                <button data-action="delete-exercise" data-workout-id="${workoutId}" data-ex-id="${ex.id}" data-user-id="${userId}" class="text-red-500 hover:text-red-400 text-xs font-semibold">Excluir</button>
+                                <button data-action="delete-exercise" data-workout-id="${workoutId}" data-ex-id="${ex.id}" data-user-id="${userId}" data-user-email="${userEmail}" class="text-red-500 hover:text-red-400 text-xs font-semibold">Excluir</button>
                             </div>
                         `).join('')}
                         </div>
@@ -375,38 +374,47 @@
         
         // --- FUNÇÕES DE EVENTOS E HELPERS ---
         function addEventListeners() {
-            const newWorkoutContent = ui.workoutContent.cloneNode(true);
-            ui.workoutContent.parentNode.replaceChild(newWorkoutContent, ui.workoutContent);
-            const newUserList = ui.userList.cloneNode(true);
-            ui.userList.parentNode.replaceChild(newUserList, ui.userList);
-            const newAdminEditor = ui.adminUserEditorView.cloneNode(true);
-            ui.adminUserEditorView.parentNode.replaceChild(newAdminEditor, ui.adminUserEditorView);
-            
-            document.querySelectorAll('.tab-button').forEach(b => b.addEventListener('click', e => {
-                const target = e.currentTarget;
-                document.querySelectorAll('.tab-button').forEach(btn => {
-                    btn.classList.remove('bg-blue-600');
-                    btn.classList.add('bg-gray-800');
-                });
-                target.classList.add('bg-blue-600');
-                target.classList.remove('bg-gray-800');
-                
-                document.querySelectorAll('#app-container #workout-content > div').forEach(d => d.classList.add('hidden'));
-                document.getElementById(`day-${target.dataset.dayIndex}`).classList.remove('hidden');
-            }));
+            // Event delegation for the entire app container
+            ui.appContainer.addEventListener('click', (e) => {
+                const button = e.target.closest('button');
+                if (!button) return;
 
-            newWorkoutContent.addEventListener('click', handleWorkoutEvent);
-            newUserList.addEventListener('click', handleAdminEvent);
-            newAdminEditor.addEventListener('click', handleAdminEditorEvent);
-            newAdminEditor.addEventListener('submit', handleAdminEditorEvent);
-            
+                // Tab navigation
+                if (button.classList.contains('tab-button')) {
+                    const dayIndex = button.dataset.dayIndex;
+                    document.querySelectorAll('.tab-button').forEach(btn => {
+                        btn.classList.remove('bg-blue-600');
+                        btn.classList.add('bg-gray-800');
+                    });
+                    button.classList.add('bg-blue-600');
+                    button.classList.remove('bg-gray-800');
+                    
+                    document.querySelectorAll('#workout-content > div').forEach(d => d.classList.add('hidden'));
+                    document.getElementById(`day-${dayIndex}`).classList.remove('hidden');
+                    return;
+                }
+                
+                // Workout events
+                if (ui.userWorkoutView.contains(button)) {
+                    handleWorkoutEvent(button);
+                }
+                
+                // Admin events
+                if (ui.adminView.contains(button)) {
+                    handleAdminEvent(button);
+                }
+
+                if (ui.adminUserEditorView.contains(button)) {
+                    handleAdminEditorEvent(button);
+                }
+            });
+
+            ui.adminUserEditorView.addEventListener('submit', handleAdminEditorEvent);
             ui.closeModalBtn.addEventListener('click', () => ui.historyModal.classList.add('hidden'));
             ui.historyModal.addEventListener('click', e => { if (e.target === ui.historyModal) ui.historyModal.classList.add('hidden'); });
         }
 
-        function handleWorkoutEvent(e) {
-            const button = e.target.closest('button');
-            if (!button) return;
+        function handleWorkoutEvent(button) {
             const { action, workoutId, exId, target } = button.dataset;
             if (!action) return;
 
@@ -416,6 +424,14 @@
             switch (action) {
                 case 'toggleDone':
                     exercicio.isDone = !exercicio.isDone;
+                    // Optimistic UI update
+                    const card = document.getElementById(`card-${exId}`);
+                    card.classList.toggle('opacity-50');
+                    card.classList.toggle('border-green-500');
+                    card.classList.toggle('border-transparent');
+                    button.textContent = exercicio.isDone ? 'Desfazer' : 'Feito';
+                    button.classList.toggle('bg-green-600');
+                    button.classList.toggle('bg-gray-600');
                     saveData(currentUser.uid, savedData);
                     break;
                 case 'save':
@@ -453,18 +469,19 @@
             }
         }
 
-        function handleAdminEvent(e) {
-            const button = e.target.closest('.admin-edit-btn');
-            if (button) {
+        function handleAdminEvent(button) {
+            if (button.classList.contains('admin-edit-btn')) {
                 const { userId, userEmail } = button.dataset;
                 renderAdminUserEditor(userId, userEmail);
             }
         }
 
         async function handleAdminEditorEvent(e) {
+            const element = e.target.closest('button, form');
+            if (!element) return;
             e.preventDefault();
-            const element = e.target;
-            const action = element.dataset.action || (e.type === 'submit' ? 'add-exercise' : null);
+
+            const action = element.dataset.action || (element.tagName === 'FORM' ? 'add-exercise' : null);
             if (!action) return;
 
             const form = document.getElementById('add-exercise-form');
@@ -480,14 +497,12 @@
 
                 const newExercise = { id: name.toLowerCase().replace(/\s/g, '-').replace(/[^\w-]/g, ''), nome: name, series: series, historico: [], isDone: false };
                 
-                await updateUserData(userId, {
-                    [`workoutDetails.${workoutId}.exercicios`]: arrayUnion(newExercise)
-                });
+                await updateUserData(userId, { [`workoutDetails.${workoutId}.exercicios`]: arrayUnion(newExercise) });
                 renderAdminUserEditor(userId, userEmail);
             }
             
             if (action === 'delete-exercise') {
-                const { userId, workoutId, exId } = element.dataset;
+                const { workoutId, exId } = element.dataset;
                 if (!confirm(`Tem certeza que deseja excluir o exercício?`)) return;
 
                 const userDocRef = doc(db, "users", userId);
@@ -495,18 +510,14 @@
                 const userData = userDoc.data();
                 const exerciseToDelete = userData.workoutDetails[workoutId].exercicios.find(ex => ex.id === exId);
                 
-                await updateUserData(userId, {
-                    [`workoutDetails.${workoutId}.exercicios`]: arrayRemove(exerciseToDelete)
-                });
+                await updateUserData(userId, { [`workoutDetails.${workoutId}.exercicios`]: arrayRemove(exerciseToDelete) });
                 renderAdminUserEditor(userId, userData.email);
             }
             
             if (action === 'delete-workout') {
-                const { userId, workoutId } = element.dataset;
+                const { workoutId } = element.dataset;
                 if (!confirm(`Tem certeza que deseja excluir todo este dia de treino?`)) return;
-                await updateUserData(userId, {
-                    [`workoutDetails.${workoutId}`]: deleteField()
-                });
+                await updateUserData(userId, { [`workoutDetails.${workoutId}`]: deleteField() });
                 const userDoc = await getDoc(doc(db, "users", userId));
                 renderAdminUserEditor(userId, userDoc.data().email);
             }
