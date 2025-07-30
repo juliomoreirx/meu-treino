@@ -50,7 +50,7 @@
                 </div>
                 <h1 class="text-4xl font-bold text-white mx-4">Meu Progresso</h1>
                 <div class="flex-1 text-right space-x-2">
-                    <button id="admin-panel-btn" class="bg-yellow-500 text-black px-3 py-1 rounded-lg text-xs font-semibold hover:bg-yellow-600 hidden">Admin</button>
+                    <button id="admin-panel-btn" data-action="open-admin" class="bg-yellow-500 text-black px-3 py-1 rounded-lg text-xs font-semibold hover:bg-yellow-600 hidden">Admin</button>
                     <button id="logout-btn" class="bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-semibold hover:bg-red-700">Sair</button>
                 </div>
             </div>
@@ -338,33 +338,39 @@
         
         // --- EVENT LISTENERS ---
         document.body.addEventListener('click', (e) => {
-            const button = e.target.closest('button');
-            if (!button) return;
-
-            const action = button.dataset.action;
+            const target = e.target;
+            const button = target.closest('button');
             
-            if (button.classList.contains('tab-button')) {
-                e.preventDefault();
-                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.replace('bg-blue-600', 'bg-gray-800'));
-                button.classList.replace('bg-gray-800', 'bg-blue-600');
-                document.querySelectorAll('#workout-content > div').forEach(d => d.classList.add('hidden'));
-                document.getElementById(`day-${button.dataset.dayIndex}`).classList.remove('hidden');
-                return;
+            if (button) {
+                const action = button.dataset.action;
+                if (button.id === 'google-login-btn') {
+                    const provider = new GoogleAuthProvider();
+                    signInWithPopup(auth, provider).catch(error => console.error("Erro no login com Google:", error));
+                } else if (button.id === 'logout-btn') {
+                    signOut(auth);
+                } else if (button.id === 'admin-panel-btn') {
+                    ui.userWorkoutView.classList.add('hidden');
+                    ui.adminUserEditorView.classList.add('hidden');
+                    ui.adminView.classList.remove('hidden');
+                    renderAdminPanel();
+                } else if (button.classList.contains('tab-button')) {
+                    e.preventDefault();
+                    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.replace('bg-blue-600', 'bg-gray-800'));
+                    button.classList.replace('bg-gray-800', 'bg-blue-600');
+                    document.querySelectorAll('#workout-content > div').forEach(d => d.classList.add('hidden'));
+                    document.getElementById(`day-${button.dataset.dayIndex}`).classList.remove('hidden');
+                } else if (ui.userWorkoutView.contains(button)) {
+                    handleWorkoutEvent(button);
+                } else if (ui.adminView.contains(button) || ui.adminUserEditorView.contains(button)) {
+                    handleAdminEditorEvent(e);
+                }
             }
-            
-            if (ui.userWorkoutView.contains(button)) handleWorkoutEvent(button);
-            if (ui.adminView.contains(button)) handleAdminEvent(button);
-            if (ui.adminUserEditorView.contains(button)) handleAdminEditorEvent(e);
         });
 
         ui.adminUserEditorView.addEventListener('submit', handleAdminEditorEvent);
         ui.adminUserEditorView.addEventListener('change', handleAdminEditorEvent);
         ui.closeModalBtn.addEventListener('click', () => ui.historyModal.classList.add('hidden'));
         ui.historyModal.addEventListener('click', e => { if (e.target === ui.historyModal) ui.historyModal.classList.add('hidden'); });
-        ui.googleLoginBtn.addEventListener('click', () => {
-            const provider = new GoogleAuthProvider();
-            signInWithPopup(auth, provider).catch(error => console.error("Erro no login com Google:", error));
-        });
 
         function handleWorkoutEvent(button) {
             const { action, workoutId, exId, target } = button.dataset;
@@ -417,14 +423,7 @@
                      break;
             }
         }
-
-        function handleAdminEvent(button) {
-            const { action, userId, userEmail } = button.dataset;
-            if (action === 'admin-edit') {
-                renderAdminUserEditor(userId, userEmail);
-            }
-        }
-
+        
         async function handleAdminEditorEvent(e) {
             const element = e.target;
             const action = element.dataset.action || (element.tagName === 'FORM' ? 'add-exercise' : null);
